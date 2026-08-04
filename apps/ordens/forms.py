@@ -29,5 +29,5 @@ class OsFotoForm(forms.ModelForm):
         widgets = {
             "titulo_secao": forms.TextInput(attrs={"placeholder": "Ex.: Disjuntor de Proteção CC"}),
             "legenda": forms.Textarea(attrs={"rows": 2, "placeholder": "Legenda técnica da foto"}),
-            "imagem": forms.ClearableFileInput(attrs={"capture": "environment", "accept": "image/*"}),
+            "imagem": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
