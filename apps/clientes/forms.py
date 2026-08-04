@@ -23,3 +23,8 @@ class ClienteCriarForm(forms.ModelForm):
             "telefone": forms.TextInput(attrs={"placeholder": "(11) 99999-0000"}),
             "quantidade_modulos": forms.NumberInput(attrs={"min": 0}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.fields["quantidade_modulos"].initial = 0

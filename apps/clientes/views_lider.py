@@ -41,7 +41,7 @@ def criar_cliente(request):
             cliente.criado_por = request.user
             cliente.save()
             messages.success(request, "Cliente cadastrado.")
-            return redirect("lider_meus_clientes")
+            return redirect("lider_cliente_detalhe", pk=cliente.pk)
     else:
         form = ClienteCriarForm()
     return render(request, "lider/criar_cliente.html", {"form": form})

@@ -26,9 +26,13 @@ def criar_os(request):
             os.criado_por = request.user
             os.save()
             messages.success(request, "OS criada e atribuída ao técnico.")
-            return redirect("lider_minhas_os")
+            return redirect("lider_cliente_detalhe", pk=os.cliente_id)
     else:
-        form = OsCriarForm(user=request.user)
+        initial = {}
+        cliente_id = request.GET.get("cliente")
+        if cliente_id:
+            initial["cliente"] = cliente_id
+        form = OsCriarForm(user=request.user, initial=initial)
     return render(request, "lider/criar_os.html", {"form": form})
 
 

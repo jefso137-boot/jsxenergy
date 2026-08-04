@@ -7,6 +7,12 @@
 
 <h1 class="text-lg font-extrabold text-navy mt-2 mb-4">Novo cliente</h1>
 
+{% if form.errors %}
+<div class="mb-4 rounded-lg bg-red-100 text-red-800 px-4 py-3 text-sm">
+    Verifique os campos abaixo antes de continuar.
+</div>
+{% endif %}
+
 <form method="post" class="bg-white rounded-xl shadow p-4 space-y-4">
     {% csrf_token %}
     <div>
@@ -17,18 +23,34 @@
     <div>
         <label class="block text-sm font-medium mb-1">Telefone</label>
         {% render_field form.telefone class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.telefone.errors %}<p class="text-xs text-red-600 mt-1">{{ form.telefone.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">E-mail</label>
         {% render_field form.email class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.email.errors %}<p class="text-xs text-red-600 mt-1">{{ form.email.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Endereço</label>
         {% render_field form.endereco class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.endereco.errors %}<p class="text-xs text-red-600 mt-1">{{ form.endereco.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Cidade</label>
         {% render_field form.cidade class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.cidade.errors %}<p class="text-xs text-red-600 mt-1">{{ form.cidade.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Quantidade de módulos</label>
+        {% render_field form.quantidade_modulos class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.quantidade_modulos.errors %}<p class="text-xs text-red-600 mt-1">{{ form.quantidade_modulos.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="flex items-center gap-2">
+            {% render_field form.instalacao_padrao class="w-5 h-5 accent-orange" %}
+            <span class="text-sm font-medium">Terá instalação de padrão?</span>
+        </label>
+        {% if form.instalacao_padrao.errors %}<p class="text-xs text-red-600 mt-1">{{ form.instalacao_padrao.errors|join:", " }}</p>{% endif %}
     </div>
     <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
         Cadastrar cliente

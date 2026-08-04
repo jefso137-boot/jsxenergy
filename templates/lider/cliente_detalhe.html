@@ -83,7 +83,7 @@
     {% endif %}
 </section>
 
-<a href="{% url 'lider_criar_os' %}" class="block text-center bg-orange text-white font-bold rounded-lg py-3 mb-8">
+<a href="{% url 'lider_criar_os' %}?cliente={{ cliente.pk }}" class="block text-center bg-orange text-white font-bold rounded-lg py-3 mb-8">
     + Nova OS pra esse cliente
 </a>
 
