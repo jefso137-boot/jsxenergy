@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}JSX Energy — ERP{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    navy: '#333F4F',
+                    orange: '#F5821F',
+                    'photo-bg': '#F5F5F6',
+                    'resumo-bg': '#F2F3F5',
+                    'body-gray': '#3D4759',
+                }
+            }
+        }
+    }
+</script>
+</head>
+<body class="bg-photo-bg min-h-screen text-body-gray">
+
+    {% if user.is_authenticated %}
+    <header class="bg-navy text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div class="flex items-center gap-2">
+            <img src="{% static 'images/jsx_energy_logo.jpeg' %}" alt="JSX Energy" class="w-9 h-9 rounded-lg">
+            <span class="font-extrabold tracking-wide">JSX <span class="text-orange">ENERGY</span></span>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+            <span class="opacity-80">{{ user.get_full_name|default:user.username }}</span>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="underline">Sair</button>
+            </form>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="max-w-xl mx-auto p-4">
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="rounded-lg px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

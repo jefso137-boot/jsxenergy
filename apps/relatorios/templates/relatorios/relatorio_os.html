@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>{{ titulo_pdf }}</title>
+<style>
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #3D4759;
+    }
+    .page {
+        width: 794px;
+        min-height: 1123px;
+        position: relative;
+        page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+
+    /* ---------- Capa ---------- */
+    .capa {
+        background: #333F4F;
+        color: #FFFFFF;
+        text-align: center;
+        padding: 70px 60px 0 60px;
+    }
+    .capa .logo-box {
+        background: #FFFFFF;
+        width: 320px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        border-radius: 4px;
+    }
+    .capa .logo-box img,
+    .capa .logo-box svg { width: 100%; display: block; }
+    .capa .orange-rule {
+        width: 100%;
+        height: 6px;
+        background: #F5821F;
+        margin-top: 40px;
+    }
+    .capa h1 {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        margin-top: 70px;
+        line-height: 1.35;
+    }
+    .capa .meta {
+        font-size: 17px;
+        color: #E4E8EE;
+        line-height: 1.9;
+        margin-top: 40px;
+    }
+    .capa .status-pill {
+        display: inline-block;
+        background: #F5821F;
+        color: #333F4F;
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        padding: 16px 55px;
+        border-radius: 30px;
+        margin-top: 55px;
+    }
+    .capa .footnote {
+        position: absolute;
+        bottom: 70px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-style: italic;
+        font-size: 14px;
+        color: #A9B2C0;
+    }
+
+    /* ---------- Status ---------- */
+    .status-page {
+        background: #FFFFFF;
+        padding: 70px 65px;
+    }
+    .status-page h2 {
+        font-size: 25px;
+        font-weight: 800;
+        color: #333F4F;
+        margin: 0;
+    }
+    .status-page .underline {
+        width: 70px;
+        height: 4px;
+        background: #F5821F;
+        margin: 10px 0 35px 0;
+    }
+    .status-page .narrativa p {
+        font-size: 14.5px;
+        line-height: 1.9;
+        color: #3D4759;
+        text-align: justify;
+        margin: 0 0 22px 0;
+    }
+    .resumo-tecnico-box {
+        background: #F2F3F5;
+        border-radius: 14px;
+        padding: 28px 32px;
+        margin-top: 40px;
+    }
+    .resumo-tecnico-box .titulo {
+        font-size: 17px;
+        font-weight: 800;
+        color: #333F4F;
+        margin: 0 0 14px 0;
+    }
+    .resumo-tecnico-box ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 14px;
+        line-height: 1.85;
+        color: #3D4759;
+    }
+    .resumo-tecnico-box li {
+        padding-left: 18px;
+        position: relative;
+    }
+    .resumo-tecnico-box li::before {
+        content: "•";
+        color: #F5821F;
+        position: absolute;
+        left: 0;
+    }
+
+    /* ---------- Página de foto ---------- */
+    .foto-page .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 26px 45px 16px 45px;
+    }
+    .foto-page .header .logo-mini { height: 40px; }
+    .foto-page .header .logo-mini svg,
+    .foto-page .header .logo-mini img { height: 100%; }
+    .foto-page .header-text { text-align: right; }
+    .foto-page .header-text .linha1 {
+        font-size: 13px;
+        font-weight: 700;
+        color: #333F4F;
+    }
+    .foto-page .header-text .linha2 {
+        font-size: 12px;
+        color: #6B7480;
+        margin-top: 2px;
+    }
+    .foto-page .header-rule {
+        height: 3px;
+        background: #F5821F;
+        margin: 0 45px;
+    }
+    .foto-page .corpo { padding: 30px 45px 0 45px; }
+    .foto-page .titulo-secao {
+        font-size: 19px;
+        font-weight: 800;
+        color: #333F4F;
+        margin: 0;
+    }
+    .foto-page .underline-secao {
+        width: 55px;
+        height: 3px;
+        background: #F5821F;
+        margin: 8px 0 22px 0;
+    }
+    .foto-page .image-wrapper {
+        width: 100%;
+        border-radius: 6px;
+        text-align: center;
+        background: #F5F5F6;
+        padding: 14px 0;
+    }
+    .foto-page .image-wrapper img {
+        max-width: 100%;
+        max-height: 620px;
+        width: auto;
+        height: auto;
+        display: inline-block;
+        border-radius: 4px;
+    }
+    .foto-page .legenda {
+        font-size: 13.5px;
+        color: #52596A;
+        line-height: 1.7;
+        margin-top: 16px;
+        text-align: left;
+    }
+</style>
+</head>
+<body>
+
+    <!-- ===================== CAPA ===================== -->
+    <section class="page capa">
+        <div class="logo-box">
+            {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" alt="JSX Energy">
+            {% else %}
+            {% include "relatorios/_logo_svg.html" %}
+            {% endif %}
+        </div>
+        <div class="orange-rule"></div>
+        <h1>{{ titulo_pdf }}</h1>
+        <div class="meta">
+            Cliente: {{ cliente_nome }}<br>
+            Data: {{ report_date }}
+        </div>
+        {% if status_pill_text %}
+        <div class="status-pill">{{ status_pill_text }}</div>
+        {% endif %}
+        {% if cover_footnote %}
+        <div class="footnote">{{ cover_footnote }}</div>
+        {% endif %}
+    </section>
+
+    <!-- ===================== STATUS ===================== -->
+    <section class="page status-page">
+        <h2>{{ status_page_titulo_pdf }}</h2>
+        <div class="underline"></div>
+
+        <div class="narrativa">
+            {% for paragrafo in narrativa_paragrafos %}
+            <p>{{ paragrafo }}</p>
+            {% endfor %}
+        </div>
+
+        {% if resumo_bullets %}
+        <div class="resumo-tecnico-box">
+            <p class="titulo">Resumo Técnico</p>
+            <ul>
+                {% for bullet in resumo_bullets %}
+                <li>{{ bullet }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- ===================== PÁGINAS DE FOTO ===================== -->
+    {% for foto in fotos %}
+    <section class="page foto-page">
+        <div class="header">
+            <div class="logo-mini">
+                {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" alt="JSX Energy">
+            {% else %}
+            {% include "relatorios/_logo_svg.html" %}
+            {% endif %}
+            </div>
+            <div class="header-text">
+                <div class="linha1">{{ photo_header_line1_pdf }}</div>
+                <div class="linha2">Cliente: {{ cliente_nome }}</div>
+            </div>
+        </div>
+        <div class="header-rule"></div>
+        <div class="corpo">
+            <p class="titulo-secao">{{ foto.titulo_secao }}</p>
+            <div class="underline-secao"></div>
+            <div class="image-wrapper">
+                <img src="{{ foto.data_uri }}" alt="{{ foto.titulo_secao }}">
+            </div>
+            {% if foto.legenda %}
+            <p class="legenda">{{ foto.legenda }}</p>
+            {% endif %}
+        </div>
+    </section>
+    {% endfor %}
+
+</body>
+</html>
