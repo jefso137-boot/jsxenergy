@@ -2,8 +2,9 @@ from django import forms
 
 from apps.clientes.models import Cliente
 from apps.contas.models import Usuario
+from apps.financas.models import MaterialCatalogo
 
-from .models import OrdemServico
+from .models import OrdemServico, OsMaterialUso
 
 
 class OsCriarForm(forms.ModelForm):
@@ -20,6 +21,18 @@ class OsCriarForm(forms.ModelForm):
         self.fields["tecnico"].queryset = Usuario.objects.filter(role=Usuario.Papel.TECNICO)
         if user is not None:
             self.fields["cliente"].queryset = Cliente.objects.filter(criado_por=user)
+
+
+class OsMaterialUsoForm(forms.ModelForm):
+    class Meta:
+        model = OsMaterialUso
+        fields = ["material", "quantidade"]
+        widgets = {"quantidade": forms.NumberInput(attrs={"min": 1})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["material"].queryset = MaterialCatalogo.objects.filter(ativo=True)
+        self.fields["material"].label_from_instance = lambda obj: obj.nome
 
 
 class OsNarrativaForm(forms.ModelForm):

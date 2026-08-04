@@ -71,6 +71,7 @@ class OrdemServico(models.Model):
         return {
             TipoOS.INSTALACAO: "RELATÓRIO FOTOGRÁFICO DE INSTALAÇÃO FOTOVOLTAICA",
             TipoOS.VISTORIA: "RELATÓRIO FOTOGRÁFICO DE VISTORIA TÉCNICA",
+            TipoOS.MATERIAL: "RELATÓRIO DE FORNECIMENTO DE MATERIAL",
         }[self.tipo]
 
     @property
@@ -78,6 +79,7 @@ class OrdemServico(models.Model):
         return {
             TipoOS.INSTALACAO: "Status da Instalação",
             TipoOS.VISTORIA: "Status da Vistoria",
+            TipoOS.MATERIAL: "Status do Fornecimento",
         }[self.tipo]
 
     @property
@@ -85,6 +87,7 @@ class OrdemServico(models.Model):
         return {
             TipoOS.INSTALACAO: "Relatório Fotográfico de Instalação",
             TipoOS.VISTORIA: "Relatório Fotográfico de Vistoria",
+            TipoOS.MATERIAL: "Relatório de Fornecimento de Material",
         }[self.tipo]
 
 
@@ -129,3 +132,22 @@ class OsFoto(models.Model):
 
     def __str__(self):
         return f"{self.titulo_secao} (OS #{self.os_id})"
+
+
+class OsMaterialUso(models.Model):
+    os = models.ForeignKey(OrdemServico, on_delete=models.CASCADE, related_name="materiais_usados")
+    material = models.ForeignKey(
+        "financas.MaterialCatalogo", on_delete=models.PROTECT, related_name="usos"
+    )
+    quantidade = models.PositiveIntegerField("Quantidade", default=1)
+    criado_em = models.DateTimeField("Registrado em", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Material usado na OS"
+        verbose_name_plural = "Materiais usados na OS"
+
+    def subtotal(self):
+        return self.quantidade * self.material.valor
+
+    def __str__(self):
+        return f"{self.quantidade}x {self.material.nome} (OS #{self.os_id})"

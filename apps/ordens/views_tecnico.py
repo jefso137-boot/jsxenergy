@@ -6,8 +6,8 @@ from apps.checklists.models import TipoCampo
 from apps.relatorios.pdf import gerar_pdf_os
 
 from .decorators import tecnico_required
-from .forms import OsNarrativaForm
-from .models import OrdemServico, OsChecklistResposta, StatusOS
+from .forms import OsMaterialUsoForm, OsNarrativaForm
+from .models import OrdemServico, OsChecklistResposta, OsMaterialUso, StatusOS
 from .utils import checklist_com_respostas
 
 
@@ -50,6 +50,22 @@ def detalhe_os(request, pk):
                 os.status = StatusOS.EM_ANDAMENTO
                 os.save(update_fields=["status"])
             messages.success(request, "Checklist salvo.")
+            return redirect("tecnico_detalhe_os", pk=os.pk)
+
+        if acao == "add_material":
+            material_form = OsMaterialUsoForm(request.POST)
+            if material_form.is_valid():
+                material_uso = material_form.save(commit=False)
+                material_uso.os = os
+                material_uso.save()
+                messages.success(request, "Material registrado.")
+            else:
+                messages.error(request, "Não foi possível registrar o material.")
+            return redirect("tecnico_detalhe_os", pk=os.pk)
+
+        if acao == "excluir_material":
+            OsMaterialUso.objects.filter(os=os, pk=request.POST.get("uso_id")).delete()
+            messages.success(request, "Material removido.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "salvar_narrativa":
@@ -104,5 +120,7 @@ def detalhe_os(request, pk):
         "os": os,
         "checklist": checklist_com_respostas(os),
         "narrativa_form": OsNarrativaForm(instance=os),
+        "materiais_usados": os.materiais_usados.select_related("material").all(),
+        "material_form": OsMaterialUsoForm(),
     }
     return render(request, "tecnico/detalhe_os.html", context)

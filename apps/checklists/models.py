@@ -4,6 +4,7 @@ from django.db import models
 class TipoOS(models.TextChoices):
     VISTORIA = "VISTORIA", "Vistoria Técnica"
     INSTALACAO = "INSTALACAO", "Instalação Fotovoltaica"
+    MATERIAL = "MATERIAL", "Fornecimento de Material"
 
 
 class ChecklistTemplate(models.Model):

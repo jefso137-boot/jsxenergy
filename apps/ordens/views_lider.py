@@ -35,8 +35,11 @@ def criar_os(request):
 @lider_required
 def detalhe_os(request, pk):
     os = get_object_or_404(OrdemServico, pk=pk, criado_por=request.user)
+    materiais_usados = os.materiais_usados.select_related("material").all()
     context = {
         "os": os,
         "checklist": checklist_com_respostas(os),
+        "materiais_usados": materiais_usados,
+        "valor_materiais_os": sum((uso.subtotal() for uso in materiais_usados), start=0),
     }
     return render(request, "lider/detalhe_os.html", context)

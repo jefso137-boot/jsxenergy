@@ -15,11 +15,11 @@
 
 <div class="space-y-3">
     {% for cliente in clientes %}
-    <div class="bg-white rounded-xl shadow p-4">
+    <a href="{% url 'lider_cliente_detalhe' cliente.pk %}" class="block bg-white rounded-xl shadow p-4 active:bg-gray-50">
         <p class="font-bold text-navy">{{ cliente.nome }}</p>
         {% if cliente.telefone %}<p class="text-sm text-body-gray">{{ cliente.telefone }}</p>{% endif %}
         {% if cliente.cidade %}<p class="text-xs text-gray-400">{{ cliente.cidade }}</p>{% endif %}
-    </div>
+    </a>
     {% endfor %}
 </div>
 

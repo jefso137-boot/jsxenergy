@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "apps.contas",
     "apps.clientes",
     "apps.checklists",
+    "apps.financas",
     "apps.ordens",
     "apps.relatorios",
 ]

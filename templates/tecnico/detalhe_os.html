@@ -67,6 +67,45 @@
     {% endif %}
 </section>
 
+{% if os.tipo == "MATERIAL" %}
+<!-- ===================== MATERIAIS UTILIZADOS ===================== -->
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Materiais utilizados</h2>
+
+    <div class="space-y-2 mb-4">
+        {% for uso in materiais_usados %}
+        <div class="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+            <span>{{ uso.quantidade }}x {{ uso.material.nome }}</span>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="excluir_material">
+                <input type="hidden" name="uso_id" value="{{ uso.id }}">
+                <button type="submit" class="text-xs text-red-600">Excluir</button>
+            </form>
+        </div>
+        {% empty %}
+        <p class="text-sm text-gray-500">Nenhum material adicionado ainda.</p>
+        {% endfor %}
+    </div>
+
+    <form method="post" class="space-y-3">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="add_material">
+        <div>
+            <label class="block text-sm font-medium mb-1">Produto</label>
+            {% render_field material_form.material class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1">Quantidade</label>
+            {% render_field material_form.quantidade class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        </div>
+        <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
+            Adicionar material
+        </button>
+    </form>
+</section>
+{% endif %}
+
 <!-- ===================== RELATÓRIO (conteúdo do PDF) ===================== -->
 <section class="bg-white rounded-xl shadow p-4 mb-4">
     <h2 class="font-bold text-navy mb-3">Informações do relatório</h2>

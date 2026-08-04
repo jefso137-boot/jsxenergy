@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ cliente.nome }} — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{% url 'lider_meus_clientes' %}" class="text-sm text-gray-500">&larr; Meus clientes</a>
+
+<h1 class="text-lg font-extrabold text-navy mt-2">{{ cliente.nome }}</h1>
+{% if cliente.telefone %}<p class="text-sm text-body-gray">{{ cliente.telefone }}</p>{% endif %}
+{% if cliente.cidade %}<p class="text-xs text-gray-400 mb-4">{{ cliente.cidade }}</p>{% endif %}
+
+<section class="bg-resumo-bg rounded-xl p-4 mb-4">
+    <h2 class="font-bold text-navy mb-2">Financeiro</h2>
+    <div class="text-sm text-body-gray space-y-1">
+        <div class="flex justify-between">
+            <span>Instalação ({{ cliente.quantidade_modulos }} módulo{{ cliente.quantidade_modulos|pluralize }}{% if cliente.instalacao_padrao %} + padrão{% endif %})</span>
+            <span>R$ {{ valor_instalacao|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span>Materiais usados</span>
+            <span>R$ {{ valor_materiais|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between font-bold text-navy pt-2 border-t border-gray-300 mt-2">
+            <span>Total</span>
+            <span>R$ {{ valor_total|floatformat:2 }}</span>
+        </div>
+    </div>
+</section>
+
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Vistorias</h2>
+    {% if vistorias %}
+    <div class="space-y-2">
+        {% for os in vistorias %}
+        <a href="{% url 'lider_detalhe_os' os.pk %}" class="block border border-gray-100 rounded-lg p-3 active:bg-gray-50">
+            <div class="flex justify-between text-sm">
+                <span>{{ os.tecnico.get_full_name|default:os.tecnico.username }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full {% if os.status == 'CONCLUIDA' %}bg-green-100 text-green-700{% elif os.status == 'EM_ANDAMENTO' %}bg-orange/20 text-orange{% else %}bg-gray-200 text-gray-600{% endif %}">{{ os.get_status_display }}</span>
+            </div>
+            <p class="text-xs text-gray-400">{{ os.data_agendada|date:"d/m/Y" }}</p>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500">Nenhuma vistoria criada.</p>
+    {% endif %}
+</section>
+
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Instalações</h2>
+    {% if instalacoes %}
+    <div class="space-y-2">
+        {% for os in instalacoes %}
+        <a href="{% url 'lider_detalhe_os' os.pk %}" class="block border border-gray-100 rounded-lg p-3 active:bg-gray-50">
+            <div class="flex justify-between text-sm">
+                <span>{{ os.tecnico.get_full_name|default:os.tecnico.username }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full {% if os.status == 'CONCLUIDA' %}bg-green-100 text-green-700{% elif os.status == 'EM_ANDAMENTO' %}bg-orange/20 text-orange{% else %}bg-gray-200 text-gray-600{% endif %}">{{ os.get_status_display }}</span>
+            </div>
+            <p class="text-xs text-gray-400">{{ os.data_agendada|date:"d/m/Y" }}</p>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500">Nenhuma instalação criada.</p>
+    {% endif %}
+</section>
+
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Material</h2>
+    {% if materiais %}
+    <div class="space-y-2">
+        {% for os in materiais %}
+        <a href="{% url 'lider_detalhe_os' os.pk %}" class="block border border-gray-100 rounded-lg p-3 active:bg-gray-50">
+            <div class="flex justify-between text-sm">
+                <span>{{ os.tecnico.get_full_name|default:os.tecnico.username }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full {% if os.status == 'CONCLUIDA' %}bg-green-100 text-green-700{% elif os.status == 'EM_ANDAMENTO' %}bg-orange/20 text-orange{% else %}bg-gray-200 text-gray-600{% endif %}">{{ os.get_status_display }}</span>
+            </div>
+            <p class="text-xs text-gray-400">{{ os.data_agendada|date:"d/m/Y" }}</p>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500">Nenhuma OS de material criada.</p>
+    {% endif %}
+</section>
+
+<a href="{% url 'lider_criar_os' %}" class="block text-center bg-orange text-white font-bold rounded-lg py-3 mb-8">
+    + Nova OS pra esse cliente
+</a>
+
+{% endblock %}

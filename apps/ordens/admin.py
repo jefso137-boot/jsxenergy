@@ -1,6 +1,20 @@
 from django.contrib import admin
 
-from .models import OrdemServico, OsChecklistResposta
+from .models import OrdemServico, OsChecklistResposta, OsMaterialUso
+
+
+class OsMaterialUsoInline(admin.TabularInline):
+    model = OsMaterialUso
+    extra = 0
+    fields = ("material", "quantidade")
+    can_delete = False
+    verbose_name_plural = "Materiais usados (registrados pelo técnico)"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.fields
 
 
 class OsChecklistRespostaInline(admin.TabularInline):
@@ -47,6 +61,8 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     def get_inlines(self, request, obj):
         if obj is None:
             return []
+        if obj.tipo == "MATERIAL":
+            return [OsChecklistRespostaInline, OsMaterialUsoInline]
         return [OsChecklistRespostaInline]
 
     def save_model(self, request, obj, form, change):
