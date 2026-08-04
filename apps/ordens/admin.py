@@ -7,12 +7,25 @@ class OsFotoInline(admin.TabularInline):
     model = OsFoto
     extra = 0
     fields = ("ordem", "titulo_secao", "imagem", "legenda")
+    verbose_name_plural = "Fotos enviadas pelo técnico"
 
 
 class OsChecklistRespostaInline(admin.TabularInline):
+    """Somente leitura: mostra o que o técnico já respondeu. O checklist certo
+    para o tipo da OS é puxado automaticamente na tela do técnico, sem precisar
+    escolher itens manualmente aqui."""
+
     model = OsChecklistResposta
     extra = 0
     fields = ("item", "marcado", "texto", "foto", "observacao")
+    can_delete = False
+    verbose_name_plural = "Respostas do checklist preenchidas pelo técnico"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.fields
 
 
 @admin.register(OrdemServico)
@@ -22,7 +35,6 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     search_fields = ("cliente__nome",)
     date_hierarchy = "data_agendada"
     readonly_fields = ("data_conclusao", "pdf_file")
-    inlines = [OsChecklistRespostaInline, OsFotoInline]
     fieldsets = (
         (None, {"fields": ("cliente", "tipo", "tecnico", "status", "data_agendada", "observacoes")}),
         (
@@ -38,3 +50,8 @@ class OrdemServicoAdmin(admin.ModelAdmin):
         ),
         ("Conclusão", {"fields": ("data_conclusao", "pdf_file")}),
     )
+
+    def get_inlines(self, request, obj):
+        if obj is None:
+            return []
+        return [OsChecklistRespostaInline, OsFotoInline]
