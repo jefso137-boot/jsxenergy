@@ -67,49 +67,6 @@
     {% endif %}
 </section>
 
-<!-- ===================== FOTOS ===================== -->
-<section class="bg-white rounded-xl shadow p-4 mb-4">
-    <h2 class="font-bold text-navy mb-3">Fotos ({{ fotos|length }})</h2>
-
-    <div class="space-y-3 mb-4">
-        {% for foto in fotos %}
-        <div class="flex gap-3 items-start border border-gray-100 rounded-lg p-2">
-            <img src="{{ foto.imagem.url }}" class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold truncate">{{ foto.titulo_secao }}</p>
-                <p class="text-xs text-gray-500 truncate">{{ foto.legenda }}</p>
-            </div>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="acao" value="excluir_foto">
-                <input type="hidden" name="foto_id" value="{{ foto.id }}">
-                <button type="submit" class="text-xs text-red-600">Excluir</button>
-            </form>
-        </div>
-        {% endfor %}
-    </div>
-
-    <form method="post" enctype="multipart/form-data" class="space-y-3">
-        {% csrf_token %}
-        <input type="hidden" name="acao" value="add_foto">
-        <div>
-            <label class="block text-sm font-medium mb-1">Título da seção</label>
-            {% render_field foto_form.titulo_secao class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        </div>
-        <div>
-            <label class="block text-sm font-medium mb-1">Legenda técnica</label>
-            {% render_field foto_form.legenda class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        </div>
-        <div>
-            <label class="block text-sm font-medium mb-1">Foto</label>
-            {% render_field foto_form.imagem class="w-full text-sm" %}
-        </div>
-        <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
-            Adicionar foto
-        </button>
-    </form>
-</section>
-
 <!-- ===================== RELATÓRIO (conteúdo do PDF) ===================== -->
 <section class="bg-white rounded-xl shadow p-4 mb-4">
     <h2 class="font-bold text-navy mb-3">Informações do relatório</h2>

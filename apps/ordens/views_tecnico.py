@@ -6,8 +6,8 @@ from apps.checklists.models import TipoCampo
 from apps.relatorios.pdf import gerar_pdf_os
 
 from .decorators import tecnico_required
-from .forms import OsFotoForm, OsNarrativaForm
-from .models import OrdemServico, OsChecklistResposta, OsFoto, StatusOS
+from .forms import OsNarrativaForm
+from .models import OrdemServico, OsChecklistResposta, StatusOS
 
 
 @tecnico_required
@@ -72,23 +72,6 @@ def detalhe_os(request, pk):
             messages.success(request, "Checklist salvo.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
-        if acao == "add_foto":
-            foto_form = OsFotoForm(request.POST, request.FILES)
-            if foto_form.is_valid():
-                foto = foto_form.save(commit=False)
-                foto.os = os
-                foto.save()
-                messages.success(request, "Foto adicionada.")
-            else:
-                messages.error(request, "Não foi possível adicionar a foto. Verifique os campos.")
-            return redirect("tecnico_detalhe_os", pk=os.pk)
-
-        if acao == "excluir_foto":
-            foto_id = request.POST.get("foto_id")
-            OsFoto.objects.filter(os=os, pk=foto_id).delete()
-            messages.success(request, "Foto removida.")
-            return redirect("tecnico_detalhe_os", pk=os.pk)
-
         if acao == "salvar_narrativa":
             narrativa_form = OsNarrativaForm(request.POST, instance=os)
             if narrativa_form.is_valid():
@@ -107,9 +90,6 @@ def detalhe_os(request, pk):
                     resposta = respostas.get(item.id)
                     if not resposta or not resposta.respondido():
                         pendentes.append(item.descricao)
-
-            if not os.fotos.exists():
-                pendentes.append("Adicione ao menos uma foto antes de dar baixa.")
 
             if pendentes:
                 messages.error(
@@ -143,8 +123,6 @@ def detalhe_os(request, pk):
     context = {
         "os": os,
         "checklist": _checklist_com_respostas(os),
-        "fotos": os.fotos.all(),
-        "foto_form": OsFotoForm(),
         "narrativa_form": OsNarrativaForm(instance=os),
     }
     return render(request, "tecnico/detalhe_os.html", context)

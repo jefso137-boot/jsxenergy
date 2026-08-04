@@ -1,13 +1,6 @@
 from django.contrib import admin
 
-from .models import OrdemServico, OsChecklistResposta, OsFoto
-
-
-class OsFotoInline(admin.TabularInline):
-    model = OsFoto
-    extra = 0
-    fields = ("ordem", "titulo_secao", "imagem", "legenda")
-    verbose_name_plural = "Fotos enviadas pelo técnico"
+from .models import OrdemServico, OsChecklistResposta
 
 
 class OsChecklistRespostaInline(admin.TabularInline):
@@ -54,4 +47,4 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     def get_inlines(self, request, obj):
         if obj is None:
             return []
-        return [OsChecklistRespostaInline, OsFotoInline]
+        return [OsChecklistRespostaInline]

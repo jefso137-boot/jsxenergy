@@ -7,6 +7,8 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from weasyprint import HTML
 
+from apps.checklists.models import TipoCampo
+
 LOGO_PATH = settings.BASE_DIR / "static" / "images" / "jsx_energy_logo.jpeg"
 
 
@@ -47,14 +49,20 @@ def _montar_bullets(texto):
 
 
 def montar_contexto(ordem_servico):
-    fotos = [
-        {
-            "titulo_secao": foto.titulo_secao,
-            "legenda": foto.legenda,
-            "data_uri": _foto_para_data_uri(foto.imagem),
-        }
-        for foto in ordem_servico.fotos.all()
-    ]
+    fotos = []
+    template = ordem_servico.get_checklist_template()
+    if template:
+        respostas = {r.item_id: r for r in ordem_servico.respostas_checklist.all()}
+        for item in template.itens.filter(tipo_campo=TipoCampo.FOTO):
+            resposta = respostas.get(item.id)
+            if resposta and resposta.foto:
+                fotos.append(
+                    {
+                        "titulo_secao": item.descricao,
+                        "legenda": resposta.observacao,
+                        "data_uri": _foto_para_data_uri(resposta.foto),
+                    }
+                )
 
     data_relatorio = ordem_servico.data_conclusao or timezone.now()
 
