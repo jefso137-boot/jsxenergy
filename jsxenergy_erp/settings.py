@@ -13,6 +13,13 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "localhost,1
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
 ]
+# Render injeta essa variável automaticamente com a URL pública exata do serviço;
+# garante que o domínio real esteja sempre coberto, mesmo que o wildcard falhe.
+_render_external_url = os.environ.get("RENDER_EXTERNAL_URL")
+if _render_external_url and _render_external_url not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(_render_external_url)
+
+CSRF_FAILURE_VIEW = "apps.contas.views.csrf_failure"
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
