@@ -2,7 +2,7 @@ services:
   - type: web
     name: jsxenergy-erp
     env: python
-    plan: starter
+    plan: free
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
     preDeployCommand: "python manage.py migrate"
     startCommand: "gunicorn jsxenergy_erp.wsgi:application"
@@ -22,12 +22,16 @@ services:
           name: jsxenergy-db
           property: connectionString
       - key: USE_S3_STORAGE
-        value: "False"
-    disk:
-      name: media
-      mountPath: /opt/render/project/src/media
-      sizeGB: 1
+        value: "True"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_STORAGE_BUCKET_NAME
+        sync: false
+      - key: AWS_S3_ENDPOINT_URL
+        sync: false
 
 databases:
   - name: jsxenergy-db
-    plan: starter
+    plan: free
