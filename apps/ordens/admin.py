@@ -13,7 +13,6 @@ class OsChecklistRespostaInline(admin.TabularInline):
     model = OsChecklistResposta
     extra = 0
     fields = ("item", "marcado", "texto", "foto", "observacao")
-    autocomplete_fields = ["item"]
 
 
 @admin.register(OrdemServico)
