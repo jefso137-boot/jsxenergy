@@ -8,6 +8,7 @@ from apps.relatorios.pdf import gerar_pdf_os
 from .decorators import tecnico_required
 from .forms import OsNarrativaForm
 from .models import OrdemServico, OsChecklistResposta, StatusOS
+from .utils import checklist_com_respostas
 
 
 @tecnico_required
@@ -22,27 +23,6 @@ def minhas_os(request):
 
 def _get_os_do_tecnico(request, pk):
     return get_object_or_404(OrdemServico, pk=pk, tecnico=request.user)
-
-
-def _checklist_com_respostas(os):
-    template = os.get_checklist_template()
-    if not template:
-        return []
-    itens = list(template.itens.all())
-    respostas = {r.item_id: r for r in os.respostas_checklist.all()}
-    linhas = []
-    for item in itens:
-        resposta = respostas.get(item.id)
-        linhas.append(
-            {
-                "item": item,
-                "marcado": resposta.marcado if resposta else False,
-                "texto": resposta.texto if resposta else "",
-                "foto": resposta.foto if resposta else None,
-                "observacao": resposta.observacao if resposta else "",
-            }
-        )
-    return linhas
 
 
 @tecnico_required
@@ -122,7 +102,7 @@ def detalhe_os(request, pk):
 
     context = {
         "os": os,
-        "checklist": _checklist_com_respostas(os),
+        "checklist": checklist_com_respostas(os),
         "narrativa_form": OsNarrativaForm(instance=os),
     }
     return render(request, "tecnico/detalhe_os.html", context)

@@ -1,6 +1,22 @@
 from django import forms
 
+from apps.contas.models import Usuario
+
 from .models import OrdemServico
+
+
+class OsCriarForm(forms.ModelForm):
+    class Meta:
+        model = OrdemServico
+        fields = ["cliente", "tipo", "tecnico", "data_agendada", "observacoes"]
+        widgets = {
+            "data_agendada": forms.DateInput(attrs={"type": "date"}),
+            "observacoes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["tecnico"].queryset = Usuario.objects.filter(role=Usuario.Papel.TECNICO)
 
 
 class OsNarrativaForm(forms.ModelForm):

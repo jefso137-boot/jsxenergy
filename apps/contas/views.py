@@ -6,4 +6,6 @@ from django.shortcuts import redirect
 def painel_redirect(request):
     if request.user.is_tecnico:
         return redirect("tecnico_minhas_os")
+    if request.user.is_lider:
+        return redirect("lider_minhas_os")
     return redirect("admin:index")

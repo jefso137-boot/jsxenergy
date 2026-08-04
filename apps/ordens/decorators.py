@@ -13,3 +13,14 @@ def tecnico_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+
+def lider_required(view_func):
+    @wraps(view_func)
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_lider:
+            raise PermissionDenied("Esta área é exclusiva para líderes de equipe.")
+        return view_func(request, *args, **kwargs)
+
+    return wrapper

@@ -22,6 +22,14 @@ class OrdemServico(models.Model):
         verbose_name="Técnico responsável",
     )
     status = models.CharField("Status", max_length=15, choices=StatusOS.choices, default=StatusOS.ABERTA)
+    criado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="ordens_criadas",
+        null=True,
+        blank=True,
+        verbose_name="Criado por",
+    )
     data_agendada = models.DateField("Data agendada")
     data_conclusao = models.DateTimeField("Data de conclusão", null=True, blank=True)
     observacoes = models.TextField("Observações internas", blank=True)

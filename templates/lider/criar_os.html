@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Nova OS — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{% url 'lider_minhas_os' %}" class="text-sm text-gray-500">&larr; Minhas OS</a>
+
+<h1 class="text-lg font-extrabold text-navy mt-2 mb-4">Nova ordem de serviço</h1>
+
+<form method="post" class="bg-white rounded-xl shadow p-4 space-y-4">
+    {% csrf_token %}
+    <div>
+        <label class="block text-sm font-medium mb-1">Cliente</label>
+        {% render_field form.cliente class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.cliente.errors %}<p class="text-xs text-red-600 mt-1">{{ form.cliente.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Tipo de OS</label>
+        {% render_field form.tipo class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.tipo.errors %}<p class="text-xs text-red-600 mt-1">{{ form.tipo.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Técnico responsável</label>
+        {% render_field form.tecnico class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.tecnico.errors %}<p class="text-xs text-red-600 mt-1">{{ form.tecnico.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Data agendada</label>
+        {% render_field form.data_agendada class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.data_agendada.errors %}<p class="text-xs text-red-600 mt-1">{{ form.data_agendada.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Observações (opcional)</label>
+        {% render_field form.observacoes class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+    </div>
+    <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
+        Criar OS
+    </button>
+</form>
+
+{% endblock %}

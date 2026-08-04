@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}OS #{{ os.pk }} — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{% url 'lider_minhas_os' %}" class="text-sm text-gray-500">&larr; Minhas OS</a>
+
+<h1 class="text-lg font-extrabold text-navy mt-2">{{ os.cliente.nome }}</h1>
+<p class="text-sm text-body-gray mb-1">{{ os.get_tipo_display }} — técnico: {{ os.tecnico.get_full_name|default:os.tecnico.username }}</p>
+<p class="text-xs text-gray-400 mb-4">Agendada para {{ os.data_agendada|date:"d/m/Y" }}</p>
+
+{% if os.status == "CONCLUIDA" %}
+<span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700 mb-4">OS concluída em {{ os.data_conclusao|date:"d/m/Y H:i" }}</span>
+{% if os.pdf_file %}
+<a href="{{ os.pdf_file.url }}" target="_blank"
+   class="block text-center bg-navy text-white font-bold rounded-lg py-3 mb-4">
+    Ver / baixar PDF do relatório
+</a>
+{% endif %}
+{% elif os.status == "EM_ANDAMENTO" %}
+<span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange mb-4">Em andamento</span>
+{% else %}
+<span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-600 mb-4">Aberta, aguardando o técnico</span>
+{% endif %}
+
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Checklist (preenchido pelo técnico)</h2>
+    {% if checklist %}
+    <div class="space-y-3">
+        {% for linha in checklist %}
+        <div class="border-b border-gray-100 pb-3">
+            <p class="text-sm font-semibold">{{ linha.item.descricao }}</p>
+            {% if linha.item.tipo_campo == "CAIXA_SELECAO" %}
+            <p class="text-sm text-gray-500">{% if linha.marcado %}Confirmado{% else %}Pendente{% endif %}</p>
+            {% elif linha.item.tipo_campo == "TEXTO" %}
+            <p class="text-sm text-gray-500">{{ linha.texto|default:"—" }}</p>
+            {% elif linha.item.tipo_campo == "FOTO" %}
+            {% if linha.foto %}
+            <img src="{{ linha.foto.url }}" class="w-20 h-20 object-cover rounded-lg mt-1">
+            {% else %}
+            <p class="text-sm text-gray-500">Sem foto ainda</p>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500">Nenhum template de checklist cadastrado para este tipo de OS.</p>
+    {% endif %}
+</section>
+
+{% endblock %}

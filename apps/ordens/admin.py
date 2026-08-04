@@ -23,11 +23,11 @@ class OsChecklistRespostaInline(admin.TabularInline):
 
 @admin.register(OrdemServico)
 class OrdemServicoAdmin(admin.ModelAdmin):
-    list_display = ("id", "cliente", "tipo", "tecnico", "status", "data_agendada", "data_conclusao")
-    list_filter = ("status", "tipo", "tecnico")
+    list_display = ("id", "cliente", "tipo", "tecnico", "status", "criado_por", "data_agendada", "data_conclusao")
+    list_filter = ("status", "tipo", "tecnico", "criado_por")
     search_fields = ("cliente__nome",)
     date_hierarchy = "data_agendada"
-    readonly_fields = ("data_conclusao", "pdf_file")
+    readonly_fields = ("criado_por", "data_conclusao", "pdf_file")
     fieldsets = (
         (None, {"fields": ("cliente", "tipo", "tecnico", "status", "data_agendada", "observacoes")}),
         (
@@ -41,10 +41,15 @@ class OrdemServicoAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Conclusão", {"fields": ("data_conclusao", "pdf_file")}),
+        ("Conclusão", {"fields": ("criado_por", "data_conclusao", "pdf_file")}),
     )
 
     def get_inlines(self, request, obj):
         if obj is None:
             return []
         return [OsChecklistRespostaInline]
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.criado_por = request.user
+        super().save_model(request, obj, form, change)

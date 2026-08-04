@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Minhas OS criadas — JSX Energy{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4">
+    <h1 class="text-lg font-extrabold text-navy">OS que você criou</h1>
+    <a href="{% url 'lider_criar_os' %}" class="bg-orange text-white text-sm font-bold rounded-lg px-4 py-2">
+        + Nova OS
+    </a>
+</div>
+
+{% if not ordens %}
+<p class="text-sm text-gray-500">Você ainda não criou nenhuma OS.</p>
+{% endif %}
+
+<div class="space-y-3">
+    {% for os in ordens %}
+    <a href="{% url 'lider_detalhe_os' os.pk %}"
+       class="block bg-white rounded-xl shadow p-4 active:bg-gray-50">
+        <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-navy">{{ os.cliente.nome }}</span>
+            {% if os.status == "CONCLUIDA" %}
+            <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Concluída</span>
+            {% elif os.status == "EM_ANDAMENTO" %}
+            <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Em andamento</span>
+            {% else %}
+            <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-600">Aberta</span>
+            {% endif %}
+        </div>
+        <div class="text-sm text-body-gray">{{ os.get_tipo_display }} — técnico: {{ os.tecnico.get_full_name|default:os.tecnico.username }}</div>
+        <div class="text-xs text-gray-400 mt-1">Agendada para {{ os.data_agendada|date:"d/m/Y" }}</div>
+    </a>
+    {% endfor %}
+</div>
+
+{% endblock %}
