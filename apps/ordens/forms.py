@@ -7,18 +7,18 @@ class OsNarrativaForm(forms.ModelForm):
     class Meta:
         model = OrdemServico
         fields = [
-            "status_pill_text",
-            "cover_footnote",
             "narrativa_paragrafos",
-            "resumo_tecnico_bullets",
-            "observacoes",
+            "status_pill_text",
         ]
+        labels = {
+            "narrativa_paragrafos": "Relatório técnico",
+            "status_pill_text": "Status",
+        }
         widgets = {
+            "narrativa_paragrafos": forms.Textarea(
+                attrs={"rows": 8, "placeholder": "Descreva o que foi feito/encontrado e a situação final"}
+            ),
             "status_pill_text": forms.TextInput(attrs={"placeholder": "Ex.: INSTALAÇÃO FINALIZADA"}),
-            "cover_footnote": forms.TextInput(attrs={"placeholder": "Resumo curto do resultado"}),
-            "narrativa_paragrafos": forms.Textarea(attrs={"rows": 6}),
-            "resumo_tecnico_bullets": forms.Textarea(attrs={"rows": 5}),
-            "observacoes": forms.Textarea(attrs={"rows": 3}),
         }
 
 

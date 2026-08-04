@@ -117,25 +117,12 @@
         {% csrf_token %}
         <input type="hidden" name="acao" value="salvar_narrativa">
         <div>
-            <label class="block text-sm font-medium mb-1">Selo de status</label>
-            {% render_field narrativa_form.status_pill_text class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        </div>
-        <div>
-            <label class="block text-sm font-medium mb-1">Rodapé da capa</label>
-            {% render_field narrativa_form.cover_footnote class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        </div>
-        <div>
-            <label class="block text-sm font-medium mb-1">Narrativa (parágrafos separados por linha em branco)</label>
+            <label class="block text-sm font-medium mb-1">Relatório técnico</label>
             {% render_field narrativa_form.narrativa_paragrafos class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
         </div>
         <div>
-            <label class="block text-sm font-medium mb-1">Resumo técnico (um item por linha)</label>
-            {% render_field narrativa_form.resumo_tecnico_bullets class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-            <p class="text-xs text-gray-400 mt-1">Se deixado em branco, é preenchido automaticamente com os itens marcados no checklist.</p>
-        </div>
-        <div>
-            <label class="block text-sm font-medium mb-1">Observações internas</label>
-            {% render_field narrativa_form.observacoes class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+            <label class="block text-sm font-medium mb-1">Status</label>
+            {% render_field narrativa_form.status_pill_text class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
         </div>
         <button type="submit" class="w-full bg-navy text-white font-bold rounded-lg py-2.5">
             Salvar informações do relatório
