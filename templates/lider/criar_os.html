@@ -13,6 +13,7 @@
         <label class="block text-sm font-medium mb-1">Cliente</label>
         {% render_field form.cliente class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
         {% if form.cliente.errors %}<p class="text-xs text-red-600 mt-1">{{ form.cliente.errors|join:", " }}</p>{% endif %}
+        <a href="{% url 'lider_criar_cliente' %}" class="text-xs text-orange font-medium mt-1 inline-block">+ Cadastrar novo cliente</a>
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Tipo de OS</label>

@@ -4,9 +4,14 @@
 
 <div class="flex items-center justify-between mb-4">
     <h1 class="text-lg font-extrabold text-navy">OS que você criou</h1>
-    <a href="{% url 'lider_criar_os' %}" class="bg-orange text-white text-sm font-bold rounded-lg px-4 py-2">
-        + Nova OS
-    </a>
+    <div class="flex gap-2">
+        <a href="{% url 'lider_meus_clientes' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+            Clientes
+        </a>
+        <a href="{% url 'lider_criar_os' %}" class="bg-orange text-white text-sm font-bold rounded-lg px-4 py-2">
+            + Nova OS
+        </a>
+    </div>
 </div>
 
 {% if not ordens %}

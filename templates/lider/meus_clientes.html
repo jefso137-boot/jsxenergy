@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Meus clientes — JSX Energy{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4">
+    <h1 class="text-lg font-extrabold text-navy">Meus clientes</h1>
+    <a href="{% url 'lider_criar_cliente' %}" class="bg-orange text-white text-sm font-bold rounded-lg px-4 py-2">
+        + Novo cliente
+    </a>
+</div>
+
+{% if not clientes %}
+<p class="text-sm text-gray-500">Você ainda não cadastrou nenhum cliente.</p>
+{% endif %}
+
+<div class="space-y-3">
+    {% for cliente in clientes %}
+    <div class="bg-white rounded-xl shadow p-4">
+        <p class="font-bold text-navy">{{ cliente.nome }}</p>
+        {% if cliente.telefone %}<p class="text-sm text-body-gray">{{ cliente.telefone }}</p>{% endif %}
+        {% if cliente.cidade %}<p class="text-xs text-gray-400">{{ cliente.cidade }}</p>{% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,5 +1,6 @@
 from django import forms
 
+from apps.clientes.models import Cliente
 from apps.contas.models import Usuario
 
 from .models import OrdemServico
@@ -14,9 +15,11 @@ class OsCriarForm(forms.ModelForm):
             "observacoes": forms.Textarea(attrs={"rows": 3}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["tecnico"].queryset = Usuario.objects.filter(role=Usuario.Papel.TECNICO)
+        if user is not None:
+            self.fields["cliente"].queryset = Cliente.objects.filter(criado_por=user)
 
 
 class OsNarrativaForm(forms.ModelForm):

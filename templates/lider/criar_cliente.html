@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Novo cliente — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{% url 'lider_meus_clientes' %}" class="text-sm text-gray-500">&larr; Meus clientes</a>
+
+<h1 class="text-lg font-extrabold text-navy mt-2 mb-4">Novo cliente</h1>
+
+<form method="post" class="bg-white rounded-xl shadow p-4 space-y-4">
+    {% csrf_token %}
+    <div>
+        <label class="block text-sm font-medium mb-1">Nome</label>
+        {% render_field form.nome class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.nome.errors %}<p class="text-xs text-red-600 mt-1">{{ form.nome.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Telefone</label>
+        {% render_field form.telefone class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">E-mail</label>
+        {% render_field form.email class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Endereço</label>
+        {% render_field form.endereco class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Cidade</label>
+        {% render_field form.cidade class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+    </div>
+    <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
+        Cadastrar cliente
+    </button>
+</form>
+
+{% endblock %}

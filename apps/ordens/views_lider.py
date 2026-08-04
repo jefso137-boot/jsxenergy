@@ -20,7 +20,7 @@ def minhas_os(request):
 @lider_required
 def criar_os(request):
     if request.method == "POST":
-        form = OsCriarForm(request.POST)
+        form = OsCriarForm(request.POST, user=request.user)
         if form.is_valid():
             os = form.save(commit=False)
             os.criado_por = request.user
@@ -28,7 +28,7 @@ def criar_os(request):
             messages.success(request, "OS criada e atribuída ao técnico.")
             return redirect("lider_minhas_os")
     else:
-        form = OsCriarForm()
+        form = OsCriarForm(user=request.user)
     return render(request, "lider/criar_os.html", {"form": form})
 
 
