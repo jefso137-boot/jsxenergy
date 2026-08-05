@@ -26,12 +26,12 @@
 
     {% if user.is_authenticated %}
     <header class="bg-navy text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <div class="flex items-center gap-2">
+        <a href="{% url 'painel_redirect' %}" class="flex items-center gap-2">
             <img src="{% static 'images/jsx_energy_logo.jpeg' %}" alt="JSX Energy" class="w-9 h-9 rounded-lg">
             <span class="font-extrabold tracking-wide">JSX <span class="text-orange">ENERGY</span></span>
-        </div>
+        </a>
         <div class="flex items-center gap-3 text-sm">
-            <span class="opacity-80">{{ user.get_full_name|default:user.username }}</span>
+            <a href="{% url 'painel_redirect' %}" class="opacity-80">{{ user.get_full_name|default:user.username }}</a>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="underline">Sair</button>
