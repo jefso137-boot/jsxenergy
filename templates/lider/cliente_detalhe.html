@@ -19,10 +19,12 @@
             <span>Materiais usados</span>
             <span>R$ {{ valor_materiais|floatformat:2 }}</span>
         </div>
+        {% for item in custos_extras_agrupados %}
         <div class="flex justify-between">
-            <span>Custos extras</span>
-            <span>R$ {{ valor_custos_extras|floatformat:2 }}</span>
+            <span>{{ item.custo__nome }}</span>
+            <span>R$ {{ item.valor|floatformat:2 }}</span>
         </div>
+        {% endfor %}
         <div class="flex justify-between font-bold text-navy pt-2 border-t border-gray-300 mt-2">
             <span>Total</span>
             <span>R$ {{ valor_total|floatformat:2 }}</span>
