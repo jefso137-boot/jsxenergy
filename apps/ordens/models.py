@@ -71,7 +71,6 @@ class OrdemServico(models.Model):
         return {
             TipoOS.INSTALACAO: "RELATÓRIO FOTOGRÁFICO DE INSTALAÇÃO FOTOVOLTAICA",
             TipoOS.VISTORIA: "RELATÓRIO FOTOGRÁFICO DE VISTORIA TÉCNICA",
-            TipoOS.MATERIAL: "RELATÓRIO DE FORNECIMENTO DE MATERIAL",
         }[self.tipo]
 
     @property
@@ -79,7 +78,6 @@ class OrdemServico(models.Model):
         return {
             TipoOS.INSTALACAO: "Status da Instalação",
             TipoOS.VISTORIA: "Status da Vistoria",
-            TipoOS.MATERIAL: "Status do Fornecimento",
         }[self.tipo]
 
     @property
@@ -87,7 +85,6 @@ class OrdemServico(models.Model):
         return {
             TipoOS.INSTALACAO: "Relatório Fotográfico de Instalação",
             TipoOS.VISTORIA: "Relatório Fotográfico de Vistoria",
-            TipoOS.MATERIAL: "Relatório de Fornecimento de Material",
         }[self.tipo]
 
 

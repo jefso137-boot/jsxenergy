@@ -10,6 +10,7 @@ class Cliente(models.Model):
     cidade = models.CharField("Cidade", max_length=120, blank=True)
     quantidade_modulos = models.PositiveIntegerField("Quantidade de módulos", default=0)
     instalacao_padrao = models.BooleanField("Terá instalação de padrão", default=False)
+    precisa_material_ca = models.BooleanField("Vai precisar de material C.A.", default=False)
     criado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

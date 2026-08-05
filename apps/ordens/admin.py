@@ -61,7 +61,7 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     def get_inlines(self, request, obj):
         if obj is None:
             return []
-        if obj.tipo == "MATERIAL":
+        if obj.tipo == "INSTALACAO" and obj.cliente.precisa_material_ca:
             return [OsChecklistRespostaInline, OsMaterialUsoInline]
         return [OsChecklistRespostaInline]
 

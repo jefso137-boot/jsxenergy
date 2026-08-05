@@ -14,10 +14,12 @@ class ClienteCriarForm(forms.ModelForm):
             "cidade",
             "quantidade_modulos",
             "instalacao_padrao",
+            "precisa_material_ca",
         ]
         labels = {
             "quantidade_modulos": "Quantidade de módulos",
             "instalacao_padrao": "Terá instalação de padrão?",
+            "precisa_material_ca": "Vai precisar de material C.A.?",
         }
         widgets = {
             "telefone": forms.TextInput(attrs={"placeholder": "(11) 99999-0000"}),

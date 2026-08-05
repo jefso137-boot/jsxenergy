@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -53,6 +54,8 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "add_material":
+            if os.tipo != "INSTALACAO" or not os.cliente.precisa_material_ca:
+                raise PermissionDenied("Este cliente não precisa de material C.A.")
             material_form = OsMaterialUsoForm(request.POST)
             if material_form.is_valid():
                 material_uso = material_form.save(commit=False)
@@ -64,6 +67,8 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "excluir_material":
+            if os.tipo != "INSTALACAO" or not os.cliente.precisa_material_ca:
+                raise PermissionDenied("Este cliente não precisa de material C.A.")
             OsMaterialUso.objects.filter(os=os, pk=request.POST.get("uso_id")).delete()
             messages.success(request, "Material removido.")
             return redirect("tecnico_detalhe_os", pk=os.pk)

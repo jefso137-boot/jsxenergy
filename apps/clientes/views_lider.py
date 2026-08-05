@@ -24,7 +24,6 @@ def cliente_detalhe(request, pk):
         "cliente": cliente,
         "vistorias": ordens.filter(tipo=TipoOS.VISTORIA),
         "instalacoes": ordens.filter(tipo=TipoOS.INSTALACAO),
-        "materiais": ordens.filter(tipo=TipoOS.MATERIAL),
         "valor_instalacao": cliente.valor_estimado_instalacao(),
         "valor_materiais": cliente.valor_materiais_usados(),
         "valor_total": cliente.valor_total(),

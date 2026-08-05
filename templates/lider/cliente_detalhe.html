@@ -64,25 +64,6 @@
     {% endif %}
 </section>
 
-<section class="bg-white rounded-xl shadow p-4 mb-4">
-    <h2 class="font-bold text-navy mb-3">Material</h2>
-    {% if materiais %}
-    <div class="space-y-2">
-        {% for os in materiais %}
-        <a href="{% url 'lider_detalhe_os' os.pk %}" class="block border border-gray-100 rounded-lg p-3 active:bg-gray-50">
-            <div class="flex justify-between text-sm">
-                <span>{{ os.tecnico.get_full_name|default:os.tecnico.username }}</span>
-                <span class="text-xs font-bold px-2 py-0.5 rounded-full {% if os.status == 'CONCLUIDA' %}bg-green-100 text-green-700{% elif os.status == 'EM_ANDAMENTO' %}bg-orange/20 text-orange{% else %}bg-gray-200 text-gray-600{% endif %}">{{ os.get_status_display }}</span>
-            </div>
-            <p class="text-xs text-gray-400">{{ os.data_agendada|date:"d/m/Y" }}</p>
-        </a>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p class="text-sm text-gray-500">Nenhuma OS de material criada.</p>
-    {% endif %}
-</section>
-
 <a href="{% url 'lider_criar_os' %}?cliente={{ cliente.pk }}" class="block text-center bg-orange text-white font-bold rounded-lg py-3 mb-8">
     + Nova OS pra esse cliente
 </a>

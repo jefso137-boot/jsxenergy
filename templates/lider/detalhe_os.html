@@ -48,7 +48,7 @@
     {% endif %}
 </section>
 
-{% if os.tipo == "MATERIAL" %}
+{% if os.tipo == "INSTALACAO" and os.cliente.precisa_material_ca %}
 <section class="bg-white rounded-xl shadow p-4 mb-4">
     <h2 class="font-bold text-navy mb-3">Materiais utilizados</h2>
     {% if materiais_usados %}
