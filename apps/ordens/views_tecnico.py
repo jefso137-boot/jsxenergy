@@ -9,7 +9,14 @@ from apps.relatorios.pdf import gerar_pdf_os
 
 from .decorators import tecnico_required
 from .forms import OsNarrativaForm
-from .models import OrdemServico, OsChecklistResposta, OsCustoExtraUso, OsMaterialUso, StatusOS
+from .models import (
+    OrdemServico,
+    OsChecklistResposta,
+    OsCustoExtraFoto,
+    OsCustoExtraUso,
+    OsMaterialUso,
+    StatusOS,
+)
 from .utils import checklist_com_respostas
 
 
@@ -94,17 +101,33 @@ def detalhe_os(request, pk):
                 custo = catalogo.get(custo_id)
                 if not custo:
                     continue
-                defaults = {}
+
+                quantidade_raw = request.POST.get(f"quantidade_{custo_id}", "1")
+                quantidade = int(quantidade_raw) if quantidade_raw.isdigit() and int(quantidade_raw) >= 1 else 1
+
+                fotos_novas = []
+                defaults = {"quantidade": quantidade}
                 if custo.tipo_campo == TipoCampo.CAIXA_SELECAO:
-                    defaults["marcado"] = request.POST.get(f"custo_{custo_id}") == "on"
+                    defaults["marcado"] = request.POST.get(f"marcado_{custo_id}") == "on"
                 elif custo.tipo_campo == TipoCampo.TEXTO:
-                    defaults["texto"] = request.POST.get(f"custo_{custo_id}", "").strip()
+                    defaults["texto"] = request.POST.get(f"texto_{custo_id}", "").strip()
                 elif custo.tipo_campo == TipoCampo.FOTO:
-                    arquivo = request.FILES.get(f"custo_{custo_id}")
-                    if not arquivo:
+                    fotos_novas = request.FILES.getlist(f"foto_{custo_id}")
+                    if not fotos_novas:
                         continue
-                    defaults["foto"] = arquivo
-                OsCustoExtraUso.objects.update_or_create(os=os, custo=custo, defaults=defaults)
+
+                uso, criado = OsCustoExtraUso.objects.get_or_create(os=os, custo=custo, defaults=defaults)
+                if not criado:
+                    uso.quantidade = quantidade
+                    if custo.tipo_campo == TipoCampo.CAIXA_SELECAO:
+                        uso.marcado = defaults["marcado"]
+                    elif custo.tipo_campo == TipoCampo.TEXTO:
+                        uso.texto = defaults["texto"]
+                    uso.save()
+
+                for arquivo in fotos_novas:
+                    OsCustoExtraFoto.objects.create(uso=uso, foto=arquivo)
+
                 salvos += 1
             if salvos:
                 messages.success(request, "Custos extras registrados.")
@@ -168,7 +191,7 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
     materiais_usados = os.materiais_usados.select_related("material").all()
-    custos_extras_usados = os.custos_extras.select_related("custo").all()
+    custos_extras_usados = os.custos_extras.select_related("custo").prefetch_related("fotos").all()
     context = {
         "os": os,
         "checklist": checklist_com_respostas(os),

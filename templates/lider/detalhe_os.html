@@ -13,7 +13,7 @@
 {% if os.pdf_file %}
 <a href="{{ os.pdf_file.url }}" target="_blank"
    class="block text-center bg-navy text-white font-bold rounded-lg py-3 mb-4">
-    Ver / baixar PDF do relatório
+    Ver PDF do relatório
 </a>
 {% endif %}
 {% elif os.status == "EM_ANDAMENTO" %}
@@ -77,7 +77,7 @@
     <div class="space-y-2">
         {% for uso in custos_extras_usados %}
         <div class="flex justify-between text-sm border-b border-gray-100 pb-2">
-            <span>{{ uso.custo.nome }}</span>
+            <span>{{ uso.quantidade }}x {{ uso.custo.nome }}</span>
             <span class="text-gray-500">R$ {{ uso.subtotal|floatformat:2 }}</span>
         </div>
         {% endfor %}

@@ -64,15 +64,28 @@ def montar_contexto(ordem_servico):
                     }
                 )
 
-    for uso in ordem_servico.custos_extras.select_related("custo"):
+    for uso in ordem_servico.custos_extras.select_related("custo").prefetch_related("fotos"):
         if not uso.respondido():
             continue
-        entrada = {"titulo_secao": uso.custo.nome, "legenda": "", "data_uri": None, "texto": ""}
         if uso.custo.tipo_campo == TipoCampo.FOTO:
-            entrada["data_uri"] = _foto_para_data_uri(uso.foto)
-        elif uso.custo.tipo_campo == TipoCampo.TEXTO:
-            entrada["texto"] = uso.texto
-        fotos.append(entrada)
+            fotos_uso = list(uso.fotos.all())
+            for indice, foto_uso in enumerate(fotos_uso, start=1):
+                titulo = uso.custo.nome
+                if len(fotos_uso) > 1:
+                    titulo = f"{titulo} ({indice}/{len(fotos_uso)})"
+                fotos.append(
+                    {
+                        "titulo_secao": titulo,
+                        "legenda": "",
+                        "data_uri": _foto_para_data_uri(foto_uso.foto),
+                        "texto": "",
+                    }
+                )
+        else:
+            entrada = {"titulo_secao": uso.custo.nome, "legenda": "", "data_uri": None, "texto": ""}
+            if uso.custo.tipo_campo == TipoCampo.TEXTO:
+                entrada["texto"] = uso.texto
+            fotos.append(entrada)
 
     data_relatorio = ordem_servico.data_conclusao or timezone.now()
 

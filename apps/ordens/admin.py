@@ -20,7 +20,7 @@ class OsMaterialUsoInline(admin.TabularInline):
 class OsCustoExtraUsoInline(admin.TabularInline):
     model = OsCustoExtraUso
     extra = 0
-    fields = ("custo", "marcado", "texto", "foto")
+    fields = ("custo", "quantidade", "marcado", "texto", "qtd_fotos")
     can_delete = False
     verbose_name_plural = "Custos extras usados (registrados pelo técnico)"
 
@@ -29,6 +29,11 @@ class OsCustoExtraUsoInline(admin.TabularInline):
 
     def get_readonly_fields(self, request, obj=None):
         return self.fields
+
+    def qtd_fotos(self, obj):
+        return obj.fotos.count()
+
+    qtd_fotos.short_description = "Fotos"
 
 
 class OsChecklistRespostaInline(admin.TabularInline):

@@ -155,9 +155,9 @@ class OsCustoExtraUso(models.Model):
     custo = models.ForeignKey(
         "financas.CustoExtraCatalogo", on_delete=models.PROTECT, related_name="usos"
     )
+    quantidade = models.PositiveIntegerField("Quantidade", default=1)
     marcado = models.BooleanField("Marcado", default=False)
     texto = models.TextField("Texto", blank=True)
-    foto = models.ImageField("Foto", upload_to="custos_extra_fotos/", null=True, blank=True)
     criado_em = models.DateTimeField("Registrado em", auto_now_add=True)
 
     class Meta:
@@ -166,15 +166,29 @@ class OsCustoExtraUso(models.Model):
         unique_together = ("os", "custo")
 
     def subtotal(self):
-        return self.custo.valor
+        return self.quantidade * self.custo.valor
 
     def respondido(self):
         tipo = self.custo.tipo_campo
         if tipo == "TEXTO":
             return bool(self.texto.strip())
         if tipo == "FOTO":
-            return bool(self.foto)
+            return self.fotos.exists()
         return self.marcado
 
     def __str__(self):
         return f"{self.custo.nome} (OS #{self.os_id})"
+
+
+class OsCustoExtraFoto(models.Model):
+    uso = models.ForeignKey(OsCustoExtraUso, on_delete=models.CASCADE, related_name="fotos")
+    foto = models.ImageField("Foto", upload_to="custos_extra_fotos/")
+    criado_em = models.DateTimeField("Enviada em", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Foto de custo extra"
+        verbose_name_plural = "Fotos de custo extra"
+        ordering = ["criado_em"]
+
+    def __str__(self):
+        return f"Foto de {self.uso.custo.nome}"

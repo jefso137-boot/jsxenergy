@@ -13,7 +13,7 @@
 {% if os.pdf_file %}
 <a href="{{ os.pdf_file.url }}" target="_blank"
    class="block text-center bg-navy text-white font-bold rounded-lg py-3 mb-4">
-    Ver / baixar PDF do relatório
+    Ver PDF do relatório
 </a>
 {% endif %}
 {% endif %}
@@ -203,7 +203,7 @@
         {% for uso in custos_extras_usados %}
         <div class="border-b border-gray-100 pb-3">
             <div class="flex justify-between items-center text-sm mb-1">
-                <span>{{ uso.custo.nome }}</span>
+                <span>{{ uso.quantidade }}x {{ uso.custo.nome }}</span>
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="acao" value="excluir_custo_extra">
@@ -211,8 +211,14 @@
                     <button type="submit" class="text-xs text-red-600">Excluir</button>
                 </form>
             </div>
-            {% if uso.custo.tipo_campo == "FOTO" and uso.foto %}
-            <img src="{{ uso.foto.url }}" class="w-20 h-20 object-cover rounded-lg">
+            {% if uso.custo.tipo_campo == "FOTO" %}
+            <div class="flex flex-wrap gap-2">
+                {% for foto in uso.fotos.all %}
+                <img src="{{ foto.foto.url }}" class="w-20 h-20 object-cover rounded-lg">
+                {% empty %}
+                <p class="text-sm text-gray-500">Sem foto ainda</p>
+                {% endfor %}
+            </div>
             {% elif uso.custo.tipo_campo == "TEXTO" %}
             <p class="text-sm text-gray-500">{{ uso.texto|default:"—" }}</p>
             {% elif uso.custo.tipo_campo == "CAIXA_SELECAO" %}
@@ -301,12 +307,27 @@
         inputCustoId.value = option.value;
         row.appendChild(inputCustoId);
 
+        var qtdWrapper = document.createElement('div');
+        qtdWrapper.className = 'mb-2';
+        var qtdLabel = document.createElement('label');
+        qtdLabel.className = 'block text-xs font-medium mb-1 text-gray-500';
+        qtdLabel.textContent = 'Quantidade';
+        var qtdInput = document.createElement('input');
+        qtdInput.type = 'number';
+        qtdInput.name = 'quantidade_' + option.value;
+        qtdInput.min = '1';
+        qtdInput.value = '1';
+        qtdInput.className = 'w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm';
+        qtdWrapper.appendChild(qtdLabel);
+        qtdWrapper.appendChild(qtdInput);
+        row.appendChild(qtdWrapper);
+
         if (tipo === 'CAIXA_SELECAO') {
             var label = document.createElement('label');
             label.className = 'flex items-center gap-2';
             var checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.name = 'custo_' + option.value;
+            checkbox.name = 'marcado_' + option.value;
             checkbox.className = 'w-5 h-5 accent-orange';
             var span = document.createElement('span');
             span.className = 'text-sm text-gray-500';
@@ -316,18 +337,35 @@
             row.appendChild(label);
         } else if (tipo === 'TEXTO') {
             var textarea = document.createElement('textarea');
-            textarea.name = 'custo_' + option.value;
+            textarea.name = 'texto_' + option.value;
             textarea.rows = 2;
             textarea.placeholder = 'Descreva';
             textarea.className = 'w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5';
             row.appendChild(textarea);
         } else {
-            var fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.name = 'custo_' + option.value;
-            fileInput.accept = 'image/*';
-            fileInput.className = 'w-full text-sm';
-            row.appendChild(fileInput);
+            var fotosWrapper = document.createElement('div');
+            fotosWrapper.className = 'space-y-2';
+
+            var criarFileInput = function () {
+                var fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.name = 'foto_' + option.value;
+                fileInput.accept = 'image/*';
+                fileInput.className = 'w-full text-sm';
+                return fileInput;
+            };
+
+            fotosWrapper.appendChild(criarFileInput());
+            row.appendChild(fotosWrapper);
+
+            var btnMaisFoto = document.createElement('button');
+            btnMaisFoto.type = 'button';
+            btnMaisFoto.className = 'text-xs text-orange font-medium mt-1';
+            btnMaisFoto.textContent = '+ mais uma foto';
+            btnMaisFoto.addEventListener('click', function () {
+                fotosWrapper.appendChild(criarFileInput());
+            });
+            row.appendChild(btnMaisFoto);
         }
 
         var novaOpcao = document.createElement('option');
@@ -378,7 +416,7 @@
     {% csrf_token %}
     <input type="hidden" name="acao" value="dar_baixa">
     <button type="submit" class="w-full bg-orange text-white font-extrabold rounded-lg py-4 mb-8 text-lg">
-        Concluir / Dar baixa
+        Concluir
     </button>
 </form>
 {% endif %}
