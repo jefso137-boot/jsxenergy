@@ -64,6 +64,16 @@ def montar_contexto(ordem_servico):
                     }
                 )
 
+    for uso in ordem_servico.custos_extras.select_related("custo"):
+        if not uso.respondido():
+            continue
+        entrada = {"titulo_secao": uso.custo.nome, "legenda": "", "data_uri": None, "texto": ""}
+        if uso.custo.tipo_campo == TipoCampo.FOTO:
+            entrada["data_uri"] = _foto_para_data_uri(uso.foto)
+        elif uso.custo.tipo_campo == TipoCampo.TEXTO:
+            entrada["texto"] = uso.texto
+        fotos.append(entrada)
+
     data_relatorio = ordem_servico.data_conclusao or timezone.now()
 
     return {

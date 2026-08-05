@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ConfiguracaoPreco, MaterialCatalogo
+from .models import ConfiguracaoPreco, CustoExtraCatalogo, MaterialCatalogo
 
 
 @admin.register(ConfiguracaoPreco)
@@ -18,4 +18,11 @@ class ConfiguracaoPrecoAdmin(admin.ModelAdmin):
 class MaterialCatalogoAdmin(admin.ModelAdmin):
     list_display = ("nome", "valor", "ativo")
     list_filter = ("ativo",)
+    search_fields = ("nome",)
+
+
+@admin.register(CustoExtraCatalogo)
+class CustoExtraCatalogoAdmin(admin.ModelAdmin):
+    list_display = ("nome", "valor", "tipo_campo", "ativo")
+    list_filter = ("ativo", "tipo_campo")
     search_fields = ("nome",)

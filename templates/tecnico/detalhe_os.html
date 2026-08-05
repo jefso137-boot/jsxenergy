@@ -194,6 +194,164 @@
 </script>
 {% endif %}
 
+{% if os.tipo == "INSTALACAO" %}
+<!-- ===================== CUSTOS EXTRAS ===================== -->
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Custos extras</h2>
+
+    <div class="space-y-3 mb-4">
+        {% for uso in custos_extras_usados %}
+        <div class="border-b border-gray-100 pb-3">
+            <div class="flex justify-between items-center text-sm mb-1">
+                <span>{{ uso.custo.nome }}</span>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="excluir_custo_extra">
+                    <input type="hidden" name="uso_id" value="{{ uso.id }}">
+                    <button type="submit" class="text-xs text-red-600">Excluir</button>
+                </form>
+            </div>
+            {% if uso.custo.tipo_campo == "FOTO" and uso.foto %}
+            <img src="{{ uso.foto.url }}" class="w-20 h-20 object-cover rounded-lg">
+            {% elif uso.custo.tipo_campo == "TEXTO" %}
+            <p class="text-sm text-gray-500">{{ uso.texto|default:"—" }}</p>
+            {% elif uso.custo.tipo_campo == "CAIXA_SELECAO" %}
+            <p class="text-sm text-gray-500">{% if uso.marcado %}Confirmado{% else %}Não confirmado{% endif %}</p>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-sm text-gray-500">Nenhum custo extra adicionado ainda.</p>
+        {% endfor %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="form-custos-extras" class="space-y-3">
+        {% csrf_token %}
+        <input type="hidden" name="acao" value="salvar_custos_extras">
+
+        <div id="custos-pendentes" class="space-y-3"></div>
+
+        <div id="custo-picker-row" class="flex gap-2 items-end {% if not custos_extras_disponiveis %}hidden{% endif %}">
+            <div class="flex-1">
+                <label class="block text-sm font-medium mb-1">Custo extra</label>
+                <select id="custo-select" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                    <option value="">Selecione...</option>
+                    {% for c in custos_extras_disponiveis %}
+                    <option value="{{ c.id }}" data-tipo="{{ c.tipo_campo }}">{{ c.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="button" id="btn-add-custo" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+                + Adicionar
+            </button>
+        </div>
+        <p id="custos-sem-opcao" class="text-sm text-gray-500 {% if custos_extras_disponiveis %}hidden{% endif %}">
+            Nenhum custo extra disponível para adicionar.
+        </p>
+
+        <button type="submit" id="btn-salvar-custos" class="w-full bg-orange text-white font-bold rounded-lg py-2.5 hidden">
+            Salvar custos extras
+        </button>
+    </form>
+</section>
+
+<script>
+(function () {
+    var select = document.getElementById('custo-select');
+    if (!select) return;
+
+    var btnAdd = document.getElementById('btn-add-custo');
+    var pendentesDiv = document.getElementById('custos-pendentes');
+    var btnSalvar = document.getElementById('btn-salvar-custos');
+    var pickerRow = document.getElementById('custo-picker-row');
+    var semOpcaoMsg = document.getElementById('custos-sem-opcao');
+
+    function atualizarVisibilidade() {
+        var temOpcoes = select.options.length > 1;
+        pickerRow.classList.toggle('hidden', !temOpcoes);
+        semOpcaoMsg.classList.toggle('hidden', temOpcoes);
+        btnSalvar.classList.toggle('hidden', pendentesDiv.children.length === 0);
+    }
+
+    btnAdd.addEventListener('click', function () {
+        var option = select.options[select.selectedIndex];
+        if (!option.value) return;
+        var tipo = option.getAttribute('data-tipo');
+
+        var row = document.createElement('div');
+        row.className = 'border border-gray-200 rounded-lg px-3 py-2';
+
+        var topo = document.createElement('div');
+        topo.className = 'flex justify-between items-center text-sm mb-2';
+
+        var texto = document.createElement('span');
+        texto.textContent = option.textContent;
+        topo.appendChild(texto);
+
+        var btnRemover = document.createElement('button');
+        btnRemover.type = 'button';
+        btnRemover.className = 'text-xs text-red-600';
+        btnRemover.textContent = 'Remover';
+        topo.appendChild(btnRemover);
+
+        row.appendChild(topo);
+
+        var inputCustoId = document.createElement('input');
+        inputCustoId.type = 'hidden';
+        inputCustoId.name = 'custo_id';
+        inputCustoId.value = option.value;
+        row.appendChild(inputCustoId);
+
+        if (tipo === 'CAIXA_SELECAO') {
+            var label = document.createElement('label');
+            label.className = 'flex items-center gap-2';
+            var checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'custo_' + option.value;
+            checkbox.className = 'w-5 h-5 accent-orange';
+            var span = document.createElement('span');
+            span.className = 'text-sm text-gray-500';
+            span.textContent = 'Marcar como confirmado';
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            row.appendChild(label);
+        } else if (tipo === 'TEXTO') {
+            var textarea = document.createElement('textarea');
+            textarea.name = 'custo_' + option.value;
+            textarea.rows = 2;
+            textarea.placeholder = 'Descreva';
+            textarea.className = 'w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5';
+            row.appendChild(textarea);
+        } else {
+            var fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = 'custo_' + option.value;
+            fileInput.accept = 'image/*';
+            fileInput.className = 'w-full text-sm';
+            row.appendChild(fileInput);
+        }
+
+        var novaOpcao = document.createElement('option');
+        novaOpcao.value = option.value;
+        novaOpcao.textContent = option.textContent;
+        novaOpcao.setAttribute('data-tipo', tipo);
+
+        btnRemover.addEventListener('click', function () {
+            select.appendChild(novaOpcao);
+            row.remove();
+            atualizarVisibilidade();
+        });
+
+        pendentesDiv.appendChild(row);
+        option.remove();
+        select.value = '';
+        atualizarVisibilidade();
+    });
+
+    atualizarVisibilidade();
+})();
+</script>
+{% endif %}
+
 <!-- ===================== RELATÓRIO (conteúdo do PDF) ===================== -->
 <section class="bg-white rounded-xl shadow p-4 mb-4">
     <h2 class="font-bold text-navy mb-3">Informações do relatório</h2>

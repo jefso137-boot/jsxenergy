@@ -4,12 +4,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.checklists.models import TipoCampo
-from apps.financas.models import MaterialCatalogo
+from apps.financas.models import CustoExtraCatalogo, MaterialCatalogo
 from apps.relatorios.pdf import gerar_pdf_os
 
 from .decorators import tecnico_required
 from .forms import OsNarrativaForm
-from .models import OrdemServico, OsChecklistResposta, OsMaterialUso, StatusOS
+from .models import OrdemServico, OsChecklistResposta, OsCustoExtraUso, OsMaterialUso, StatusOS
 from .utils import checklist_com_respostas
 
 
@@ -85,6 +85,40 @@ def detalhe_os(request, pk):
             messages.success(request, "Material removido.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
+        if acao == "salvar_custos_extras":
+            if os.tipo != "INSTALACAO":
+                raise PermissionDenied("Custos extras só se aplicam a OS de instalação.")
+            catalogo = {str(c.id): c for c in CustoExtraCatalogo.objects.filter(ativo=True)}
+            salvos = 0
+            for custo_id in request.POST.getlist("custo_id"):
+                custo = catalogo.get(custo_id)
+                if not custo:
+                    continue
+                defaults = {}
+                if custo.tipo_campo == TipoCampo.CAIXA_SELECAO:
+                    defaults["marcado"] = request.POST.get(f"custo_{custo_id}") == "on"
+                elif custo.tipo_campo == TipoCampo.TEXTO:
+                    defaults["texto"] = request.POST.get(f"custo_{custo_id}", "").strip()
+                elif custo.tipo_campo == TipoCampo.FOTO:
+                    arquivo = request.FILES.get(f"custo_{custo_id}")
+                    if not arquivo:
+                        continue
+                    defaults["foto"] = arquivo
+                OsCustoExtraUso.objects.update_or_create(os=os, custo=custo, defaults=defaults)
+                salvos += 1
+            if salvos:
+                messages.success(request, "Custos extras registrados.")
+            else:
+                messages.error(request, "Nenhum custo extra válido para registrar.")
+            return redirect("tecnico_detalhe_os", pk=os.pk)
+
+        if acao == "excluir_custo_extra":
+            if os.tipo != "INSTALACAO":
+                raise PermissionDenied("Custos extras só se aplicam a OS de instalação.")
+            OsCustoExtraUso.objects.filter(os=os, pk=request.POST.get("uso_id")).delete()
+            messages.success(request, "Custo extra removido.")
+            return redirect("tecnico_detalhe_os", pk=os.pk)
+
         if acao == "salvar_narrativa":
             narrativa_form = OsNarrativaForm(request.POST, instance=os)
             if narrativa_form.is_valid():
@@ -134,6 +168,7 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
     materiais_usados = os.materiais_usados.select_related("material").all()
+    custos_extras_usados = os.custos_extras.select_related("custo").all()
     context = {
         "os": os,
         "checklist": checklist_com_respostas(os),
@@ -141,6 +176,10 @@ def detalhe_os(request, pk):
         "materiais_usados": materiais_usados,
         "materiais_disponiveis": MaterialCatalogo.objects.filter(ativo=True).exclude(
             id__in=materiais_usados.values_list("material_id", flat=True)
+        ),
+        "custos_extras_usados": custos_extras_usados,
+        "custos_extras_disponiveis": CustoExtraCatalogo.objects.filter(ativo=True).exclude(
+            id__in=custos_extras_usados.values_list("custo_id", flat=True)
         ),
     }
     return render(request, "tecnico/detalhe_os.html", context)

@@ -148,3 +148,33 @@ class OsMaterialUso(models.Model):
 
     def __str__(self):
         return f"{self.quantidade}x {self.material.nome} (OS #{self.os_id})"
+
+
+class OsCustoExtraUso(models.Model):
+    os = models.ForeignKey(OrdemServico, on_delete=models.CASCADE, related_name="custos_extras")
+    custo = models.ForeignKey(
+        "financas.CustoExtraCatalogo", on_delete=models.PROTECT, related_name="usos"
+    )
+    marcado = models.BooleanField("Marcado", default=False)
+    texto = models.TextField("Texto", blank=True)
+    foto = models.ImageField("Foto", upload_to="custos_extra_fotos/", null=True, blank=True)
+    criado_em = models.DateTimeField("Registrado em", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Custo extra usado na OS"
+        verbose_name_plural = "Custos extras usados na OS"
+        unique_together = ("os", "custo")
+
+    def subtotal(self):
+        return self.custo.valor
+
+    def respondido(self):
+        tipo = self.custo.tipo_campo
+        if tipo == "TEXTO":
+            return bool(self.texto.strip())
+        if tipo == "FOTO":
+            return bool(self.foto)
+        return self.marcado
+
+    def __str__(self):
+        return f"{self.custo.nome} (OS #{self.os_id})"

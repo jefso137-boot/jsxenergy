@@ -265,11 +265,17 @@
         <div class="corpo">
             <p class="titulo-secao">{{ foto.titulo_secao }}</p>
             <div class="underline-secao"></div>
+            {% if foto.data_uri %}
             <div class="image-wrapper">
                 <img src="{{ foto.data_uri }}" alt="{{ foto.titulo_secao }}">
             </div>
             {% if foto.legenda %}
             <p class="legenda">{{ foto.legenda }}</p>
+            {% endif %}
+            {% elif foto.texto %}
+            <p class="legenda">{{ foto.texto }}</p>
+            {% else %}
+            <p class="legenda">Serviço confirmado.</p>
             {% endif %}
         </div>
     </section>

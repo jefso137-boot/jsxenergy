@@ -70,4 +70,26 @@
 </section>
 {% endif %}
 
+{% if os.tipo == "INSTALACAO" %}
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Custos extras</h2>
+    {% if custos_extras_usados %}
+    <div class="space-y-2">
+        {% for uso in custos_extras_usados %}
+        <div class="flex justify-between text-sm border-b border-gray-100 pb-2">
+            <span>{{ uso.custo.nome }}</span>
+            <span class="text-gray-500">R$ {{ uso.subtotal|floatformat:2 }}</span>
+        </div>
+        {% endfor %}
+        <div class="flex justify-between font-bold text-navy pt-2">
+            <span>Total</span>
+            <span>R$ {{ valor_custos_extras_os|floatformat:2 }}</span>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500">Nenhum custo extra registrado ainda.</p>
+    {% endif %}
+</section>
+{% endif %}
+
 {% endblock %}

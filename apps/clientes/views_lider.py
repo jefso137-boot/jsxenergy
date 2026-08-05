@@ -26,6 +26,7 @@ def cliente_detalhe(request, pk):
         "instalacoes": ordens.filter(tipo=TipoOS.INSTALACAO),
         "valor_instalacao": cliente.valor_estimado_instalacao(),
         "valor_materiais": cliente.valor_materiais_usados(),
+        "valor_custos_extras": cliente.valor_custos_extras_usados(),
         "valor_total": cliente.valor_total(),
     }
     return render(request, "lider/cliente_detalhe.html", context)

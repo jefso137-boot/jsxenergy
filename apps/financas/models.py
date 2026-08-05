@@ -1,5 +1,7 @@
 from django.db import models
 
+from apps.checklists.models import TipoCampo
+
 
 class ConfiguracaoPreco(models.Model):
     valor_placa = models.DecimalField(
@@ -36,6 +38,27 @@ class MaterialCatalogo(models.Model):
     class Meta:
         verbose_name = "Material do catálogo"
         verbose_name_plural = "Catálogo de materiais"
+        ordering = ["nome"]
+
+    def __str__(self):
+        return self.nome
+
+
+class CustoExtraCatalogo(models.Model):
+    nome = models.CharField("Serviço / custo extra", max_length=150)
+    valor = models.DecimalField("Valor", max_digits=10, decimal_places=2, default=0)
+    tipo_campo = models.CharField(
+        "Como o técnico vai registrar",
+        max_length=15,
+        choices=TipoCampo.choices,
+        default=TipoCampo.FOTO,
+    )
+    ativo = models.BooleanField("Ativo", default=True)
+    criado_em = models.DateTimeField("Criado em", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Custo extra do catálogo"
+        verbose_name_plural = "Catálogo de custos extras"
         ordering = ["nome"]
 
     def __str__(self):

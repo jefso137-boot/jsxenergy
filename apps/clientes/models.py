@@ -44,5 +44,15 @@ class Cliente(models.Model):
         usos = OsMaterialUso.objects.filter(os__cliente=self).select_related("material")
         return sum((uso.subtotal() for uso in usos), start=0)
 
+    def valor_custos_extras_usados(self):
+        from apps.ordens.models import OsCustoExtraUso
+
+        usos = OsCustoExtraUso.objects.filter(os__cliente=self).select_related("custo")
+        return sum((uso.subtotal() for uso in usos), start=0)
+
     def valor_total(self):
-        return self.valor_estimado_instalacao() + self.valor_materiais_usados()
+        return (
+            self.valor_estimado_instalacao()
+            + self.valor_materiais_usados()
+            + self.valor_custos_extras_usados()
+        )
