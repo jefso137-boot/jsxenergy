@@ -4,10 +4,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.checklists.models import TipoCampo
+from apps.financas.models import MaterialCatalogo
 from apps.relatorios.pdf import gerar_pdf_os
 
 from .decorators import tecnico_required
-from .forms import OsMaterialUsoForm, OsNarrativaForm
+from .forms import OsNarrativaForm
 from .models import OrdemServico, OsChecklistResposta, OsMaterialUso, StatusOS
 from .utils import checklist_com_respostas
 
@@ -53,17 +54,28 @@ def detalhe_os(request, pk):
             messages.success(request, "Checklist salvo.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
-        if acao == "add_material":
+        if acao == "add_materiais":
             if os.tipo != "INSTALACAO" or not os.cliente.precisa_material_ca:
                 raise PermissionDenied("Este cliente não precisa de material C.A.")
-            material_form = OsMaterialUsoForm(request.POST)
-            if material_form.is_valid():
-                material_uso = material_form.save(commit=False)
-                material_uso.os = os
-                material_uso.save()
-                messages.success(request, "Material registrado.")
+            catalogo = {str(m.id): m for m in MaterialCatalogo.objects.filter(ativo=True)}
+            registrados = 0
+            for material_id, quantidade in zip(
+                request.POST.getlist("material_id"), request.POST.getlist("quantidade")
+            ):
+                material = catalogo.get(material_id)
+                if not material or not quantidade.isdigit() or int(quantidade) < 1:
+                    continue
+                uso, criado = OsMaterialUso.objects.get_or_create(
+                    os=os, material=material, defaults={"quantidade": int(quantidade)}
+                )
+                if not criado:
+                    uso.quantidade += int(quantidade)
+                    uso.save(update_fields=["quantidade"])
+                registrados += 1
+            if registrados:
+                messages.success(request, "Materiais registrados.")
             else:
-                messages.error(request, "Não foi possível registrar o material.")
+                messages.error(request, "Nenhum material selecionado.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "excluir_material":
@@ -121,11 +133,14 @@ def detalhe_os(request, pk):
             messages.success(request, "OS concluída e relatório PDF gerado com sucesso.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
+    materiais_usados = os.materiais_usados.select_related("material").all()
     context = {
         "os": os,
         "checklist": checklist_com_respostas(os),
         "narrativa_form": OsNarrativaForm(instance=os),
-        "materiais_usados": os.materiais_usados.select_related("material").all(),
-        "material_form": OsMaterialUsoForm(),
+        "materiais_usados": materiais_usados,
+        "materiais_disponiveis": MaterialCatalogo.objects.filter(ativo=True).exclude(
+            id__in=materiais_usados.values_list("material_id", flat=True)
+        ),
     }
     return render(request, "tecnico/detalhe_os.html", context)

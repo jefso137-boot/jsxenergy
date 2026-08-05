@@ -88,22 +88,110 @@
         {% endfor %}
     </div>
 
-    <form method="post" class="space-y-3">
+    <form method="post" id="form-materiais" class="space-y-3">
         {% csrf_token %}
-        <input type="hidden" name="acao" value="add_material">
-        <div>
-            <label class="block text-sm font-medium mb-1">Produto</label>
-            {% render_field material_form.material class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        <input type="hidden" name="acao" value="add_materiais">
+
+        <div id="materiais-pendentes" class="space-y-2"></div>
+
+        <div id="material-picker-row" class="flex gap-2 items-end {% if not materiais_disponiveis %}hidden{% endif %}">
+            <div class="flex-1">
+                <label class="block text-sm font-medium mb-1">Produto</label>
+                <select id="material-select" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                    <option value="">Selecione...</option>
+                    {% for m in materiais_disponiveis %}
+                    <option value="{{ m.id }}">{{ m.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="w-20">
+                <label class="block text-sm font-medium mb-1">Qtd.</label>
+                <input type="number" id="material-quantidade" min="1" value="1"
+                       class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            </div>
+            <button type="button" id="btn-add-material" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+                + Adicionar
+            </button>
         </div>
-        <div>
-            <label class="block text-sm font-medium mb-1">Quantidade</label>
-            {% render_field material_form.quantidade class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-        </div>
-        <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
-            Adicionar material
+        <p id="materiais-sem-opcao" class="text-sm text-gray-500 {% if materiais_disponiveis %}hidden{% endif %}">
+            Nenhum material disponível para adicionar.
+        </p>
+
+        <button type="submit" id="btn-salvar-materiais" class="w-full bg-orange text-white font-bold rounded-lg py-2.5 hidden">
+            Salvar materiais
         </button>
     </form>
 </section>
+
+<script>
+(function () {
+    var select = document.getElementById('material-select');
+    if (!select) return;
+
+    var qtdInput = document.getElementById('material-quantidade');
+    var btnAdd = document.getElementById('btn-add-material');
+    var pendentesDiv = document.getElementById('materiais-pendentes');
+    var btnSalvar = document.getElementById('btn-salvar-materiais');
+    var pickerRow = document.getElementById('material-picker-row');
+    var semOpcaoMsg = document.getElementById('materiais-sem-opcao');
+
+    function atualizarVisibilidade() {
+        var temOpcoes = select.options.length > 1;
+        pickerRow.classList.toggle('hidden', !temOpcoes);
+        semOpcaoMsg.classList.toggle('hidden', temOpcoes);
+        btnSalvar.classList.toggle('hidden', pendentesDiv.children.length === 0);
+    }
+
+    btnAdd.addEventListener('click', function () {
+        var option = select.options[select.selectedIndex];
+        var quantidade = parseInt(qtdInput.value, 10);
+        if (!option.value || !quantidade || quantidade < 1) return;
+
+        var row = document.createElement('div');
+        row.className = 'flex justify-between items-center text-sm border border-gray-200 rounded-lg px-3 py-2';
+
+        var texto = document.createElement('span');
+        texto.textContent = quantidade + 'x ' + option.textContent;
+        row.appendChild(texto);
+
+        var btnRemover = document.createElement('button');
+        btnRemover.type = 'button';
+        btnRemover.className = 'text-xs text-red-600';
+        btnRemover.textContent = 'Remover';
+        row.appendChild(btnRemover);
+
+        var inputMaterial = document.createElement('input');
+        inputMaterial.type = 'hidden';
+        inputMaterial.name = 'material_id';
+        inputMaterial.value = option.value;
+        row.appendChild(inputMaterial);
+
+        var inputQtd = document.createElement('input');
+        inputQtd.type = 'hidden';
+        inputQtd.name = 'quantidade';
+        inputQtd.value = quantidade;
+        row.appendChild(inputQtd);
+
+        var novaOpcao = document.createElement('option');
+        novaOpcao.value = option.value;
+        novaOpcao.textContent = option.textContent;
+
+        btnRemover.addEventListener('click', function () {
+            select.appendChild(novaOpcao);
+            row.remove();
+            atualizarVisibilidade();
+        });
+
+        pendentesDiv.appendChild(row);
+        option.remove();
+        qtdInput.value = 1;
+        select.value = '';
+        atualizarVisibilidade();
+    });
+
+    atualizarVisibilidade();
+})();
+</script>
 {% endif %}
 
 <!-- ===================== RELATÓRIO (conteúdo do PDF) ===================== -->
