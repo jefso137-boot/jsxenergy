@@ -7,7 +7,6 @@ urlpatterns = [
     path("", include("apps.contas.urls")),
     path("", include("apps.ordens.urls")),
     path("", include("apps.clientes.urls")),
-    path("", include("apps.financas.urls")),
 ]
 
 admin.site.site_header = "JSX Energy — Painel Administrativo"
