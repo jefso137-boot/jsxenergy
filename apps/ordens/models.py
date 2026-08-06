@@ -183,7 +183,11 @@ class OsCustoExtraUso(models.Model):
 
     def subtotal(self):
         if self.custo.area_por_placa:
-            return self.quantidade * self.custo.area_por_placa * self.custo.valor
+            # Custos por m² sempre usam a quantidade de módulos atual do cliente,
+            # nunca o número salvo aqui - assim não fica desatualizado se o
+            # cadastro do cliente mudar depois que o custo foi registrado.
+            quantidade = self.os.cliente.quantidade_modulos
+            return quantidade * self.custo.area_por_placa * self.custo.valor
         return self.quantidade * self.custo.valor
 
     def respondido(self):
