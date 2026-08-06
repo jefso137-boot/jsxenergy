@@ -30,6 +30,14 @@
             <span>R$ {{ valor_total|floatformat:2 }}</span>
         </div>
     </div>
+    {% if tem_recibo_disponivel %}
+    <a href="{% url 'lider_recibo_cliente' cliente.pk %}" target="_blank"
+       class="block text-center bg-navy text-white text-sm font-bold rounded-lg py-2.5 mt-3">
+        Ver recibo
+    </a>
+    {% else %}
+    <p class="text-xs text-gray-400 mt-3">O recibo fica disponível assim que uma OS de instalação for concluída.</p>
+    {% endif %}
 </section>
 
 <section class="bg-white rounded-xl shadow p-4 mb-4">

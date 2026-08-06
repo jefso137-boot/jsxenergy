@@ -28,14 +28,22 @@ class OsNarrativaForm(forms.ModelForm):
         fields = [
             "narrativa_paragrafos",
             "status_pill_text",
+            "descricao_recibo",
         ]
         labels = {
             "narrativa_paragrafos": "Relatório técnico",
             "status_pill_text": "Status",
+            "descricao_recibo": "Descrição do serviço (aparece no recibo)",
         }
         widgets = {
             "narrativa_paragrafos": forms.Textarea(
                 attrs={"rows": 8, "placeholder": "Descreva o que foi feito/encontrado e a situação final"}
             ),
             "status_pill_text": forms.TextInput(attrs={"placeholder": "Ex.: INSTALAÇÃO FINALIZADA"}),
+            "descricao_recibo": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                    "placeholder": "Ex.: Serviço de instalação de sistema fotovoltaico conectado à rede com fornecimento de material",
+                }
+            ),
         }

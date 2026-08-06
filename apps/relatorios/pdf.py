@@ -113,3 +113,89 @@ def gerar_pdf_os(ordem_servico):
     nome_arquivo = f"OS-{ordem_servico.pk}-{ordem_servico.cliente.nome}".replace(" ", "_")
     ordem_servico.pdf_file.save(f"{nome_arquivo}.pdf", ContentFile(pdf_bytes), save=True)
     return ordem_servico.pdf_file
+
+
+def os_referencia_recibo(cliente):
+    """A OS de instalação concluída mais recente do cliente - fonte da data e da
+    descrição do serviço que aparecem no recibo."""
+    from apps.ordens.models import OrdemServico
+
+    return (
+        OrdemServico.objects.filter(cliente=cliente, tipo="INSTALACAO", status="CONCLUIDA")
+        .order_by("-data_conclusao")
+        .first()
+    )
+
+
+def montar_contexto_recibo(cliente):
+    from django.db.models import Sum
+
+    from apps.financas.models import ConfiguracaoPreco
+    from apps.ordens.models import OsCustoExtraUso
+
+    precos = ConfiguracaoPreco.get_solo()
+    os_referencia = os_referencia_recibo(cliente)
+
+    servicos = []
+
+    if cliente.quantidade_modulos:
+        servicos.append(
+            {
+                "nome": "PAINÉL",
+                "preco": precos.valor_placa,
+                "quantidade": cliente.quantidade_modulos,
+                "valor": cliente.quantidade_modulos * precos.valor_placa,
+            }
+        )
+
+    if cliente.instalacao_padrao:
+        servicos.append(
+            {
+                "nome": "PADRÃO CONVENCIONAL",
+                "preco": precos.valor_padrao,
+                "quantidade": 1,
+                "valor": precos.valor_padrao,
+            }
+        )
+
+    custos_extras = (
+        OsCustoExtraUso.objects.filter(os__cliente=cliente)
+        .values("custo__nome", "custo__valor")
+        .annotate(quantidade_total=Sum("quantidade"))
+        .order_by("custo__nome")
+    )
+    for item in custos_extras:
+        servicos.append(
+            {
+                "nome": item["custo__nome"].upper(),
+                "preco": item["custo__valor"],
+                "quantidade": item["quantidade_total"],
+                "valor": item["quantidade_total"] * item["custo__valor"],
+            }
+        )
+
+    valor_materiais = cliente.valor_materiais_usados()
+    if valor_materiais:
+        servicos.append({"nome": "MATERIAL C.A", "preco": None, "quantidade": None, "valor": valor_materiais})
+
+    total = sum((s["valor"] for s in servicos), start=0)
+
+    return {
+        "recibo_info": settings.JSX_ENERGY_RECIBO,
+        "empresa_cliente": cliente.criado_por.nome_empresa_recibo if cliente.criado_por else "",
+        "data_servico": (
+            timezone.localtime(os_referencia.data_conclusao).strftime("%d/%m/%Y") if os_referencia else ""
+        ),
+        "cliente": cliente,
+        "descricao": os_referencia.descricao_recibo if os_referencia else "",
+        "servicos": servicos,
+        "total": total,
+        "logo_data_uri": _logo_data_uri(),
+    }
+
+
+def gerar_recibo_pdf_bytes(cliente):
+    """Gera o PDF do recibo do cliente (WeasyPrint) e retorna os bytes, sem persistir em disco."""
+    contexto = montar_contexto_recibo(cliente)
+    html_string = render_to_string("relatorios/recibo_cliente.html", contexto)
+    return HTML(string=html_string).write_pdf()

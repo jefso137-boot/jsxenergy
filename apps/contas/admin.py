@@ -8,5 +8,9 @@ from .models import Usuario
 class UsuarioAdmin(UserAdmin):
     list_display = ("username", "first_name", "last_name", "role", "is_staff", "is_active")
     list_filter = ("role", "is_staff", "is_active")
-    fieldsets = UserAdmin.fieldsets + (("Papel JSX Energy", {"fields": ("role",)}),)
-    add_fieldsets = UserAdmin.add_fieldsets + (("Papel JSX Energy", {"fields": ("role",)}),)
+    fieldsets = UserAdmin.fieldsets + (
+        ("Papel JSX Energy", {"fields": ("role", "nome_empresa_recibo")}),
+    )
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ("Papel JSX Energy", {"fields": ("role", "nome_empresa_recibo")}),
+    )

@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.db.models import F, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.checklists.models import TipoOS
 from apps.ordens.decorators import lider_required
 from apps.ordens.models import OrdemServico, OsCustoExtraUso
+from apps.relatorios.pdf import gerar_recibo_pdf_bytes, os_referencia_recibo
 
 from .forms import ClienteCriarForm
 from .models import Cliente
@@ -36,8 +38,25 @@ def cliente_detalhe(request, pk):
         "valor_materiais": cliente.valor_materiais_usados(),
         "custos_extras_agrupados": custos_extras_agrupados,
         "valor_total": cliente.valor_total(),
+        "tem_recibo_disponivel": os_referencia_recibo(cliente) is not None,
     }
     return render(request, "lider/cliente_detalhe.html", context)
+
+
+@lider_required
+def recibo_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk, criado_por=request.user)
+    if os_referencia_recibo(cliente) is None:
+        messages.error(
+            request, "Ainda não há nenhuma OS de instalação concluída para gerar o recibo deste cliente."
+        )
+        return redirect("lider_cliente_detalhe", pk=cliente.pk)
+
+    pdf_bytes = gerar_recibo_pdf_bytes(cliente)
+    nome_arquivo = f"Recibo-{cliente.nome}".replace(" ", "_")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{nome_arquivo}.pdf"'
+    return response
 
 
 @lider_required

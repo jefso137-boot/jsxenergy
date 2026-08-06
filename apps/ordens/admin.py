@@ -71,6 +71,7 @@ class OrdemServicoAdmin(admin.ModelAdmin):
                     "cover_footnote",
                     "narrativa_paragrafos",
                     "resumo_tecnico_bullets",
+                    "descricao_recibo",
                 )
             },
         ),

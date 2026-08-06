@@ -404,6 +404,12 @@
             <label class="block text-sm font-medium mb-1">Status</label>
             {% render_field narrativa_form.status_pill_text class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
         </div>
+        {% if os.tipo == "INSTALACAO" %}
+        <div>
+            <label class="block text-sm font-medium mb-1">Descrição do serviço (aparece no recibo)</label>
+            {% render_field narrativa_form.descricao_recibo class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        </div>
+        {% endif %}
         <button type="submit" class="w-full bg-navy text-white font-bold rounded-lg py-2.5">
             Salvar informações do relatório
         </button>

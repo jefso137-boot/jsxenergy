@@ -51,6 +51,13 @@ class OrdemServico(models.Model):
         "Resumo técnico (PDF)", blank=True,
         help_text="Um item por linha. Se deixado em branco, é pré-preenchido com os itens do checklist marcados.",
     )
+    descricao_recibo = models.TextField(
+        "Descrição do serviço (recibo)", blank=True,
+        help_text=(
+            "Usada no recibo do cliente. Ex.: Serviço de instalação de sistema fotovoltaico "
+            "conectado à rede com fornecimento de material."
+        ),
+    )
     pdf_file = models.FileField("PDF gerado", upload_to="relatorios_os/", null=True, blank=True)
 
     criado_em = models.DateTimeField("Criado em", auto_now_add=True)

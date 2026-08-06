@@ -136,3 +136,12 @@ JSX_ENERGY_BRAND = {
     "footnote_gray": "#A9B2C0",
     "header_subtitle_gray": "#6B7480",
 }
+
+# Dados fixos da JSX Energy exibidos no cabeçalho e na assinatura dos recibos
+JSX_ENERGY_RECIBO = {
+    "cnpj": "63.729.375/0001-07",
+    "contato": "(91) 98956-4709",
+    "banco": "INTER EMPRESAS",
+    "chave_pix": "63.729.375/0001-07",
+    "assinante": "Jefferson S. Santos",
+}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>Recibo — {{ cliente.nome }}</title>
+<style>
+    @page {
+        size: A4;
+        margin: 50px 55px;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #3D4759;
+        font-size: 13px;
+    }
+
+    .topo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin-bottom: 6px;
+    }
+    .topo .logo { height: 46px; }
+    .topo .logo img, .topo .logo svg { height: 100%; }
+    h1.titulo {
+        text-align: center;
+        color: #333F4F;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin: 0 0 22px 0;
+    }
+
+    .cabecalho {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    .cabecalho .empresa {
+        font-size: 12.5px;
+        line-height: 1.9;
+        color: #3D4759;
+    }
+    .cabecalho .empresa .nome {
+        font-weight: 800;
+        color: #333F4F;
+        font-size: 13.5px;
+    }
+    .cabecalho .info-cliente {
+        text-align: right;
+        font-size: 12.5px;
+        line-height: 1.9;
+    }
+    .cabecalho .info-cliente strong { color: #333F4F; }
+
+    table.dados {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 18px;
+    }
+    table.dados td {
+        border: 1px solid #C9CFD8;
+        padding: 8px 10px;
+        font-size: 12.5px;
+    }
+    table.dados td.rotulo {
+        width: 110px;
+        font-weight: 700;
+        color: #333F4F;
+        background: #F2F3F5;
+    }
+
+    .descricao {
+        border: 1px solid #C9CFD8;
+        border-radius: 6px;
+        padding: 12px 14px;
+        font-size: 12.5px;
+        color: #F5821F;
+        font-weight: 700;
+        line-height: 1.6;
+        margin-bottom: 22px;
+    }
+
+    table.servicos {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 4px;
+    }
+    table.servicos th {
+        background: #333F4F;
+        color: #FFFFFF;
+        font-size: 12px;
+        text-transform: uppercase;
+        padding: 9px 10px;
+        text-align: left;
+    }
+    table.servicos th.num, table.servicos td.num { text-align: right; }
+    table.servicos td {
+        border: 1px solid #C9CFD8;
+        padding: 8px 10px;
+        font-size: 12.5px;
+    }
+    table.servicos tr.total td {
+        background: #F2F3F5;
+        font-weight: 800;
+        color: #333F4F;
+    }
+
+    .preco-final {
+        width: 260px;
+        margin-left: auto;
+        margin-top: 26px;
+        border-collapse: collapse;
+    }
+    .preco-final td {
+        border: 1px solid #C9CFD8;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    .preco-final td.rotulo {
+        background: #F2F3F5;
+        font-weight: 800;
+        color: #333F4F;
+    }
+    .preco-final td.valor {
+        text-align: right;
+        font-weight: 800;
+        color: #F5821F;
+    }
+
+    .assinatura {
+        margin-top: 70px;
+        width: 280px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+    .assinatura .linha {
+        border-top: 1px solid #3D4759;
+        padding-top: 6px;
+        font-size: 12.5px;
+    }
+    .assinatura .legenda {
+        font-size: 10.5px;
+        color: #A9B2C0;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+</style>
+</head>
+<body>
+
+    <div class="topo">
+        <div class="logo">
+            {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" alt="JSX Energy">
+            {% else %}
+            {% include "relatorios/_logo_svg.html" %}
+            {% endif %}
+        </div>
+    </div>
+    <h1 class="titulo">RECIBO</h1>
+
+    <div class="cabecalho">
+        <div class="empresa">
+            <div class="nome">JSX ENERGY</div>
+            <div>CNPJ: {{ recibo_info.cnpj }}</div>
+            <div>CONTATO: {{ recibo_info.contato }}</div>
+            <div>BANCO: {{ recibo_info.banco }}</div>
+            <div>CHAVE PIX: {{ recibo_info.chave_pix }}</div>
+        </div>
+        <div class="info-cliente">
+            <div><strong>CLIENTE:</strong> {{ empresa_cliente|default:"—" }}</div>
+            <div><strong>DATA DO SERVIÇO:</strong> {{ data_servico|default:"—" }}</div>
+        </div>
+    </div>
+
+    <table class="dados">
+        <tr>
+            <td class="rotulo">NOME</td>
+            <td>{{ cliente.nome }}</td>
+        </tr>
+        <tr>
+            <td class="rotulo">ENDEREÇO</td>
+            <td>{{ cliente.endereco|default:"—" }}{% if cliente.cidade %}, {{ cliente.cidade }}{% endif %}</td>
+        </tr>
+    </table>
+
+    {% if descricao %}
+    <div class="descricao">DESCRIÇÃO: {{ descricao|upper }}</div>
+    {% endif %}
+
+    <table class="servicos">
+        <thead>
+            <tr>
+                <th>Serviços</th>
+                <th class="num">Preço</th>
+                <th class="num">Quantidade</th>
+                <th class="num">Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in servicos %}
+            <tr>
+                <td>{{ s.nome }}</td>
+                <td class="num">{% if s.preco is not None %}R$ {{ s.preco|floatformat:2 }}{% endif %}</td>
+                <td class="num">{% if s.quantidade is not None %}{{ s.quantidade }}{% endif %}</td>
+                <td class="num">R$ {{ s.valor|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Nenhum serviço registrado para este cliente ainda.</td>
+            </tr>
+            {% endfor %}
+            <tr class="total">
+                <td colspan="3">TOTAL</td>
+                <td class="num">R$ {{ total|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="preco-final">
+        <tr>
+            <td class="rotulo">PREÇO FINAL</td>
+            <td class="valor">R$ {{ total|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <div class="assinatura">
+        <div class="linha">{{ recibo_info.assinante }}</div>
+        <div class="legenda">Assinatura do portador</div>
+    </div>
+
+</body>
+</html>
