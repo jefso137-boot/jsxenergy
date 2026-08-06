@@ -242,7 +242,7 @@
                 <select id="custo-select" class="w-full rounded-lg border border-gray-300 px-3 py-2">
                     <option value="">Selecione...</option>
                     {% for c in custos_extras_disponiveis %}
-                    <option value="{{ c.id }}" data-tipo="{{ c.tipo_campo }}">{{ c.nome }}</option>
+                    <option value="{{ c.id }}" data-tipo="{{ c.tipo_campo }}" data-area="{{ c.area_por_placa|default_if_none:'' }}">{{ c.nome }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -265,6 +265,7 @@
     var select = document.getElementById('custo-select');
     if (!select) return;
 
+    var quantidadeModulos = {{ os.cliente.quantidade_modulos }};
     var btnAdd = document.getElementById('btn-add-custo');
     var pendentesDiv = document.getElementById('custos-pendentes');
     var btnSalvar = document.getElementById('btn-salvar-custos');
@@ -307,20 +308,29 @@
         inputCustoId.value = option.value;
         row.appendChild(inputCustoId);
 
-        var qtdWrapper = document.createElement('div');
-        qtdWrapper.className = 'mb-2';
-        var qtdLabel = document.createElement('label');
-        qtdLabel.className = 'block text-xs font-medium mb-1 text-gray-500';
-        qtdLabel.textContent = 'Quantidade';
-        var qtdInput = document.createElement('input');
-        qtdInput.type = 'number';
-        qtdInput.name = 'quantidade_' + option.value;
-        qtdInput.min = '1';
-        qtdInput.value = '1';
-        qtdInput.className = 'w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm';
-        qtdWrapper.appendChild(qtdLabel);
-        qtdWrapper.appendChild(qtdInput);
-        row.appendChild(qtdWrapper);
+        var area = option.getAttribute('data-area');
+
+        if (area) {
+            var areaInfo = document.createElement('p');
+            areaInfo.className = 'text-xs text-gray-400 mb-2';
+            areaInfo.textContent = 'Calculado automaticamente pela quantidade de módulos do cliente (' + quantidadeModulos + ' módulo' + (quantidadeModulos === 1 ? '' : 's') + ' × ' + area + ' m²).';
+            row.appendChild(areaInfo);
+        } else {
+            var qtdWrapper = document.createElement('div');
+            qtdWrapper.className = 'mb-2';
+            var qtdLabel = document.createElement('label');
+            qtdLabel.className = 'block text-xs font-medium mb-1 text-gray-500';
+            qtdLabel.textContent = 'Quantidade';
+            var qtdInput = document.createElement('input');
+            qtdInput.type = 'number';
+            qtdInput.name = 'quantidade_' + option.value;
+            qtdInput.min = '1';
+            qtdInput.value = '1';
+            qtdInput.className = 'w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm';
+            qtdWrapper.appendChild(qtdLabel);
+            qtdWrapper.appendChild(qtdInput);
+            row.appendChild(qtdWrapper);
+        }
 
         if (tipo === 'CAIXA_SELECAO') {
             var label = document.createElement('label');

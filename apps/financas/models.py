@@ -50,6 +50,16 @@ class MaterialCatalogo(models.Model):
 class CustoExtraCatalogo(models.Model):
     nome = models.CharField("Serviço / custo extra", max_length=150)
     valor = models.DecimalField("Valor", max_digits=10, decimal_places=2, default=0)
+    area_por_placa = models.DecimalField(
+        "Área por placa (m²)", max_digits=6, decimal_places=3, null=True, blank=True,
+        help_text=(
+            "Preencha só se esse custo for cobrado por metro quadrado (ex.: impermeabilização). "
+            "Quando preenchido, o valor \"por unidade\" acima passa a ser o valor por m², e a "
+            "quantidade informada na baixa/calculadora vira quantidade de placas: "
+            "valor = quantidade de placas × área por placa × valor por m². "
+            "Deixe em branco pra custos cobrados por unidade simples."
+        ),
+    )
     tipo_campo = models.CharField(
         "Como o técnico vai registrar",
         max_length=15,

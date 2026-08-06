@@ -45,9 +45,14 @@
         <div class="flex items-center justify-between gap-3">
             <div>
                 <p class="text-sm font-medium">{{ c.nome }}</p>
+                {% if c.area_por_placa %}
+                <p class="text-xs text-gray-400">R$ {{ c.valor|floatformat:2 }} / m² &middot; {{ c.area_por_placa }} m² por placa</p>
+                {% else %}
                 <p class="text-xs text-gray-400">R$ {{ c.valor|floatformat:2 }} / unidade</p>
+                {% endif %}
             </div>
             <input type="number" min="0" value="0" data-preco="{{ c.valor|stringformat:'0.2f' }}"
+                   {% if c.area_por_placa %}data-area="{{ c.area_por_placa|stringformat:'0.3f' }}" placeholder="placas"{% endif %}
                    class="calc-item w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         </div>
         {% endfor %}
@@ -93,8 +98,9 @@
         var total = 0;
         inputs.forEach(function (input) {
             var preco = parseFloat(input.getAttribute('data-preco')) || 0;
+            var area = parseFloat(input.getAttribute('data-area')) || 1;
             var quantidade = parseFloat(input.value) || 0;
-            total += preco * quantidade;
+            total += preco * area * quantidade;
         });
         totalEl.textContent = formatar(total);
     }

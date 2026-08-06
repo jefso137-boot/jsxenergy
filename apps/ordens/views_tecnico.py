@@ -102,8 +102,11 @@ def detalhe_os(request, pk):
                 if not custo:
                     continue
 
-                quantidade_raw = request.POST.get(f"quantidade_{custo_id}", "1")
-                quantidade = int(quantidade_raw) if quantidade_raw.isdigit() and int(quantidade_raw) >= 1 else 1
+                if custo.area_por_placa:
+                    quantidade = os.cliente.quantidade_modulos
+                else:
+                    quantidade_raw = request.POST.get(f"quantidade_{custo_id}", "1")
+                    quantidade = int(quantidade_raw) if quantidade_raw.isdigit() and int(quantidade_raw) >= 1 else 1
 
                 fotos_novas = []
                 defaults = {"quantidade": quantidade}

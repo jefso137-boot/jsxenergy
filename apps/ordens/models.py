@@ -173,6 +173,8 @@ class OsCustoExtraUso(models.Model):
         unique_together = ("os", "custo")
 
     def subtotal(self):
+        if self.custo.area_por_placa:
+            return self.quantidade * self.custo.area_por_placa * self.custo.valor
         return self.quantidade * self.custo.valor
 
     def respondido(self):
