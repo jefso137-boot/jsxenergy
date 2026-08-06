@@ -154,14 +154,14 @@ def medicao(request):
                 "aberto": hoje <= fim,
                 "linhas": linhas,
                 "valor_pendente": sum((l["valor"] for l in linhas if not l["cliente"].pago), start=0),
-                "valor_pago": sum((l["valor"] for l in linhas if l["cliente"].pago), start=0),
+                "qtd_pago": sum(1 for l in linhas if l["cliente"].pago),
             }
         )
 
     context = {
         "fechamentos": fechamentos,
         "valor_pendente": sum((f["valor_pendente"] for f in fechamentos), start=0),
-        "valor_pago": sum((f["valor_pago"] for f in fechamentos), start=0),
+        "qtd_pago": sum((f["qtd_pago"] for f in fechamentos), start=0),
     }
     return render(request, "lider/medicao.html", context)
 
