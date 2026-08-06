@@ -62,8 +62,11 @@
 
 {% if materiais %}
 <section class="bg-white rounded-xl shadow p-4 mb-4">
-    <h2 class="font-bold text-navy mb-3">Materiais</h2>
-    <div class="space-y-3">
+    <label class="flex items-center gap-2 mb-3">
+        <input type="checkbox" id="materiais-toggle" class="w-5 h-5 accent-orange">
+        <span class="font-bold text-navy">Materiais</span>
+    </label>
+    <div id="materiais-lista" class="space-y-3 hidden">
         {% for m in materiais %}
         <div class="flex items-center justify-between gap-3">
             <div>
@@ -108,6 +111,20 @@
     inputs.forEach(function (input) {
         input.addEventListener('input', recalcular);
     });
+
+    var materiaisToggle = document.getElementById('materiais-toggle');
+    var materiaisLista = document.getElementById('materiais-lista');
+    if (materiaisToggle) {
+        materiaisToggle.addEventListener('change', function () {
+            materiaisLista.classList.toggle('hidden', !materiaisToggle.checked);
+            if (!materiaisToggle.checked) {
+                materiaisLista.querySelectorAll('.calc-item').forEach(function (input) {
+                    input.value = 0;
+                });
+            }
+            recalcular();
+        });
+    }
 
     recalcular();
 })();
