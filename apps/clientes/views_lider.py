@@ -18,10 +18,10 @@ from .models import Cliente
 
 def periodo_fechamento(data):
     """Semana de fechamento: quinta-feira até a quarta-feira seguinte
-    (recebimento sempre na quinta seguinte ao fechamento)."""
-    data_local = timezone.localtime(data).date() if timezone.is_aware(data) else data
-    dias_desde_quinta = (data_local.weekday() - 3) % 7  # quinta-feira = 3
-    inicio = data_local - datetime.timedelta(days=dias_desde_quinta)
+    (recebimento sempre na quinta seguinte ao fechamento). `data` deve ser
+    um datetime.date (veja data_referencia_do_cliente)."""
+    dias_desde_quinta = (data.weekday() - 3) % 7  # quinta-feira = 3
+    inicio = data - datetime.timedelta(days=dias_desde_quinta)
     fim = inicio + datetime.timedelta(days=6)
     return inicio, fim
 
