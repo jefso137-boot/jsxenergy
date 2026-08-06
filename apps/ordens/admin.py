@@ -63,6 +63,7 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     readonly_fields = ("criado_por", "data_conclusao", "pdf_file")
     fieldsets = (
         (None, {"fields": ("cliente", "tipo", "tecnico", "status", "data_agendada", "observacoes")}),
+        ("Anexos (PDF)", {"fields": ("documento_pdf_1", "documento_pdf_2")}),
         (
             "Conteúdo do relatório (PDF)",
             {

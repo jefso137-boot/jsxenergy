@@ -20,10 +20,13 @@ def minhas_os(request):
 @lider_required
 def criar_os(request):
     if request.method == "POST":
-        form = OsCriarForm(request.POST, user=request.user)
+        form = OsCriarForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             os = form.save(commit=False)
             os.criado_por = request.user
+            if os.tipo != "INSTALACAO":
+                os.documento_pdf_1 = None
+                os.documento_pdf_2 = None
             os.save()
             messages.success(request, "OS criada e atribuída ao técnico.")
             return redirect("lider_cliente_detalhe", pk=os.cliente_id)

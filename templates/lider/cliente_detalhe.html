@@ -15,23 +15,11 @@
 {% if cliente.telefone %}<p class="text-sm text-body-gray">{{ cliente.telefone }}</p>{% endif %}
 {% if cliente.cidade %}<p class="text-xs text-gray-400">{{ cliente.cidade }}</p>{% endif %}
 
-{% if cliente.link_localizacao or cliente.documento_pdf_1 or cliente.documento_pdf_2 %}
-<div class="flex flex-wrap gap-2 mt-2 mb-4">
-    {% if cliente.link_localizacao %}
-    <a href="{{ cliente.link_localizacao }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+{% if cliente.link_localizacao %}
+<div class="mt-2 mb-4">
+    <a href="{{ cliente.link_localizacao }}" target="_blank" class="inline-block text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
         Localização
     </a>
-    {% endif %}
-    {% if cliente.documento_pdf_1 %}
-    <a href="{{ cliente.documento_pdf_1.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
-        Anexo 1
-    </a>
-    {% endif %}
-    {% if cliente.documento_pdf_2 %}
-    <a href="{{ cliente.documento_pdf_2.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
-        Anexo 2
-    </a>
-    {% endif %}
 </div>
 {% else %}
 <div class="mb-4"></div>

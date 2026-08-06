@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from apps.checklists.models import ChecklistItem, ChecklistTemplate, TipoOS
@@ -33,6 +34,14 @@ class OrdemServico(models.Model):
     data_agendada = models.DateField("Data agendada")
     data_conclusao = models.DateTimeField("Data de conclusão", null=True, blank=True)
     observacoes = models.TextField("Observações internas", blank=True)
+    documento_pdf_1 = models.FileField(
+        "Documento anexo 1 (PDF)", upload_to="os_documentos/", null=True, blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
+    )
+    documento_pdf_2 = models.FileField(
+        "Documento anexo 2 (PDF)", upload_to="os_documentos/", null=True, blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
+    )
 
     # Campos usados na geração do PDF (spec "editable_fields_for_new_client")
     status_pill_text = models.CharField(

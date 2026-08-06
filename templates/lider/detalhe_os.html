@@ -6,7 +6,29 @@
 
 <h1 class="text-lg font-extrabold text-navy mt-2">{{ os.cliente.nome }}</h1>
 <p class="text-sm text-body-gray mb-1">{{ os.get_tipo_display }} — técnico: {{ os.tecnico.get_full_name|default:os.tecnico.username }}</p>
-<p class="text-xs text-gray-400 mb-4">Agendada para {{ os.data_agendada|date:"d/m/Y" }}</p>
+<p class="text-xs text-gray-400 mb-1">Agendada para {{ os.data_agendada|date:"d/m/Y" }}</p>
+
+{% if os.cliente.link_localizacao or os.documento_pdf_1 or os.documento_pdf_2 %}
+<div class="flex flex-wrap gap-2 mb-4">
+    {% if os.cliente.link_localizacao %}
+    <a href="{{ os.cliente.link_localizacao }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+        Localização
+    </a>
+    {% endif %}
+    {% if os.documento_pdf_1 %}
+    <a href="{{ os.documento_pdf_1.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+        Anexo 1
+    </a>
+    {% endif %}
+    {% if os.documento_pdf_2 %}
+    <a href="{{ os.documento_pdf_2.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+        Anexo 2
+    </a>
+    {% endif %}
+</div>
+{% else %}
+<div class="mb-4"></div>
+{% endif %}
 
 {% if os.status == "CONCLUIDA" %}
 <span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700 mb-4">OS concluída em {{ os.data_conclusao|date:"d/m/Y H:i" }}</span>

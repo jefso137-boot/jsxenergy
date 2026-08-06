@@ -9,7 +9,11 @@ from .models import OrdemServico
 class OsCriarForm(forms.ModelForm):
     class Meta:
         model = OrdemServico
-        fields = ["cliente", "tipo", "tecnico", "data_agendada", "observacoes"]
+        fields = ["cliente", "tipo", "tecnico", "data_agendada", "observacoes", "documento_pdf_1", "documento_pdf_2"]
+        labels = {
+            "documento_pdf_1": "Anexo 1 (PDF)",
+            "documento_pdf_2": "Anexo 2 (PDF)",
+        }
         widgets = {
             "data_agendada": forms.DateInput(attrs={"type": "date"}),
             "observacoes": forms.Textarea(attrs={"rows": 3}),
