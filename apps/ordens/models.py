@@ -174,6 +174,11 @@ class OsCustoExtraUso(models.Model):
     quantidade = models.PositiveIntegerField("Quantidade", default=1)
     marcado = models.BooleanField("Marcado", default=False)
     texto = models.TextField("Texto", blank=True)
+    valor_manual = models.DecimalField(
+        "Valor manual (substitui o cálculo)", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Preencha só para sobrescrever, nesta OS específica, o valor que seria calculado "
+        "automaticamente. Deixe em branco para usar o cálculo normal.",
+    )
     criado_em = models.DateTimeField("Registrado em", auto_now_add=True)
 
     class Meta:
@@ -182,6 +187,8 @@ class OsCustoExtraUso(models.Model):
         unique_together = ("os", "custo")
 
     def subtotal(self):
+        if self.valor_manual is not None:
+            return self.valor_manual
         if self.custo.area_por_placa:
             # Custos por m² sempre usam a quantidade de módulos atual do cliente,
             # nunca o número salvo aqui - assim não fica desatualizado se o
