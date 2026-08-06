@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from apps.checklists.models import TipoOS
 from apps.ordens.decorators import lider_required
@@ -57,6 +58,35 @@ def recibo_cliente(request, pk):
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="{nome_arquivo}.pdf"'
     return response
+
+
+@lider_required
+def medicao(request):
+    if request.method == "POST":
+        cliente = get_object_or_404(Cliente, pk=request.POST.get("cliente_id"), criado_por=request.user)
+        if request.POST.get("acao") == "marcar_pago":
+            cliente.pago = True
+            cliente.data_pagamento = timezone.now()
+            cliente.save(update_fields=["pago", "data_pagamento"])
+            messages.success(request, f"{cliente.nome} marcado como pago.")
+        elif request.POST.get("acao") == "marcar_pendente":
+            cliente.pago = False
+            cliente.data_pagamento = None
+            cliente.save(update_fields=["pago", "data_pagamento"])
+            messages.success(request, f"{cliente.nome} marcado como pendente.")
+        return redirect("lider_medicao")
+
+    clientes = Cliente.objects.filter(criado_por=request.user).order_by("pago", "nome")
+    linhas = [{"cliente": c, "valor_total": c.valor_total()} for c in clientes]
+    valor_pendente = sum((l["valor_total"] for l in linhas if not l["cliente"].pago), start=0)
+    valor_pago = sum((l["valor_total"] for l in linhas if l["cliente"].pago), start=0)
+
+    context = {
+        "linhas": linhas,
+        "valor_pendente": valor_pendente,
+        "valor_pago": valor_pago,
+    }
+    return render(request, "lider/medicao.html", context)
 
 
 @lider_required

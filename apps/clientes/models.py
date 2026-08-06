@@ -11,6 +11,8 @@ class Cliente(models.Model):
     quantidade_modulos = models.PositiveIntegerField("Quantidade de módulos", default=0)
     instalacao_padrao = models.BooleanField("Terá instalação de padrão", default=False)
     precisa_material_ca = models.BooleanField("Vai precisar de material C.A.", default=False)
+    pago = models.BooleanField("Pago", default=False)
+    data_pagamento = models.DateTimeField("Pago em", null=True, blank=True)
     criado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

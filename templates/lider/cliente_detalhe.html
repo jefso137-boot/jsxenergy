@@ -4,7 +4,14 @@
 
 <a href="{% url 'lider_meus_clientes' %}" class="text-sm text-gray-500">&larr; Meus clientes</a>
 
-<h1 class="text-lg font-extrabold text-navy mt-2">{{ cliente.nome }}</h1>
+<div class="flex items-center gap-2 mt-2">
+    <h1 class="text-lg font-extrabold text-navy">{{ cliente.nome }}</h1>
+    {% if cliente.pago %}
+    <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Pago</span>
+    {% else %}
+    <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Pendente</span>
+    {% endif %}
+</div>
 {% if cliente.telefone %}<p class="text-sm text-body-gray">{{ cliente.telefone }}</p>{% endif %}
 {% if cliente.cidade %}<p class="text-xs text-gray-400 mb-4">{{ cliente.cidade }}</p>{% endif %}
 
