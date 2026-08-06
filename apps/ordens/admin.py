@@ -75,6 +75,7 @@ class OrdemServicoAdmin(admin.ModelAdmin):
             },
         ),
         ("Conclusão", {"fields": ("criado_por", "data_conclusao", "pdf_file")}),
+        ("Medição", {"fields": ("data_referencia_medicao",)}),
     )
 
     def get_inlines(self, request, obj):

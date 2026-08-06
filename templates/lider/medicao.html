@@ -44,35 +44,15 @@
         {% for linha in fechamento.linhas %}
         <div class="bg-white rounded-xl shadow p-4">
             <a href="{% url 'lider_cliente_detalhe' linha.cliente.pk %}" class="block font-bold text-navy mb-1">{{ linha.cliente.nome }}</a>
-            <p class="text-sm text-body-gray">{{ linha.descricao }}</p>
-            {% if not fechamento.pago %}
-            <p class="text-sm text-body-gray mb-2">R$ {{ linha.valor|floatformat:2 }}</p>
+            <a href="{% url 'lider_detalhe_os' linha.os.pk %}" class="text-sm text-body-gray hover:underline">
+                {{ linha.descricao }} — OS #{{ linha.os.pk }} ({{ linha.os.data_agendada|date:"d/m/Y" }})
+            </a>
+            {% if linha.os.data_referencia_medicao %}
+            <p class="text-xs text-gray-400">Movida pelo administrativo para esta semana</p>
             {% endif %}
-
-            <details class="mt-2">
-                <summary class="text-xs text-gray-400 cursor-pointer">Mover semana de medição</summary>
-                <div class="mt-2 space-y-2">
-                    {% if linha.cliente.data_referencia_medicao %}
-                    <p class="text-xs text-gray-400">Usando data manual: {{ linha.cliente.data_referencia_medicao|date:"d/m/Y" }}</p>
-                    {% endif %}
-                    <form method="post" class="flex items-center gap-2">
-                        {% csrf_token %}
-                        <input type="hidden" name="cliente_id" value="{{ linha.cliente.pk }}">
-                        <input type="hidden" name="acao" value="mover_semana">
-                        <input type="date" name="nova_data" required
-                               class="text-xs rounded-lg border border-gray-300 px-2 py-1.5">
-                        <button type="submit" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">Mover</button>
-                    </form>
-                    {% if linha.cliente.data_referencia_medicao %}
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="cliente_id" value="{{ linha.cliente.pk }}">
-                        <input type="hidden" name="acao" value="resetar_semana">
-                        <button type="submit" class="text-xs text-gray-500 underline">Usar data de cadastro novamente</button>
-                    </form>
-                    {% endif %}
-                </div>
-            </details>
+            {% if not fechamento.pago %}
+            <p class="text-sm text-body-gray mt-1">R$ {{ linha.valor|floatformat:2 }}</p>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

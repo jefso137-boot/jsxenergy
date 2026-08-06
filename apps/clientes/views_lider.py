@@ -26,20 +26,19 @@ from .models import Cliente, FechamentoMedicao
 def periodo_fechamento(data):
     """Semana de fechamento: quinta-feira até a quarta-feira seguinte
     (recebimento sempre na quinta seguinte ao fechamento). `data` deve ser
-    um datetime.date (veja data_referencia_do_cliente)."""
+    um datetime.date."""
     dias_desde_quinta = (data.weekday() - 3) % 7  # quinta-feira = 3
     inicio = data - datetime.timedelta(days=dias_desde_quinta)
     fim = inicio + datetime.timedelta(days=6)
     return inicio, fim
 
 
-def periodo_para_contribuicao(cliente, data_conclusao):
-    """Semana de fechamento de um valor apurado numa OS concluída: usa a
-    data manual do cliente (se movido) ou a data de conclusão da própria OS."""
-    if cliente.data_referencia_medicao:
-        data = cliente.data_referencia_medicao
-    else:
-        data = timezone.localtime(data_conclusao).date()
+def periodo_para_os(ordem):
+    """Semana de fechamento de uma OS concluída: entra na semana da própria
+    data agendada dela - vistoria e instalação do mesmo cliente podem cair
+    em semanas diferentes. Só o admin pode mover uma OS pra outra semana
+    (OrdemServico.data_referencia_medicao)."""
+    data = ordem.data_referencia_medicao or ordem.data_agendada
     return periodo_fechamento(data)
 
 
@@ -97,24 +96,6 @@ def recibo_cliente(request, pk):
 
 @lider_required
 def medicao(request):
-    if request.method == "POST":
-        cliente = get_object_or_404(Cliente, pk=request.POST.get("cliente_id"), criado_por=request.user)
-        acao = request.POST.get("acao")
-        if acao == "mover_semana":
-            nova_data = request.POST.get("nova_data")
-            try:
-                cliente.data_referencia_medicao = datetime.date.fromisoformat(nova_data)
-            except (TypeError, ValueError):
-                messages.error(request, "Data inválida.")
-                return redirect("lider_medicao")
-            cliente.save(update_fields=["data_referencia_medicao"])
-            messages.success(request, f"{cliente.nome} movido de semana de medição.")
-        elif acao == "resetar_semana":
-            cliente.data_referencia_medicao = None
-            cliente.save(update_fields=["data_referencia_medicao"])
-            messages.success(request, f"{cliente.nome} voltou a usar a data de cadastro.")
-        return redirect("lider_medicao")
-
     from apps.financas.models import ConfiguracaoPreco
 
     precos = ConfiguracaoPreco.get_solo()
@@ -124,8 +105,10 @@ def medicao(request):
         criado_por=request.user, tipo=TipoOS.VISTORIA, status=StatusOS.CONCLUIDA
     ).select_related("cliente")
     for os in vistorias:
-        periodo = periodo_para_contribuicao(os.cliente, os.data_conclusao)
-        grupos[periodo].append({"cliente": os.cliente, "descricao": "Vistoria", "valor": precos.valor_vistoria})
+        periodo = periodo_para_os(os)
+        grupos[periodo].append(
+            {"cliente": os.cliente, "os": os, "descricao": "Vistoria", "valor": precos.valor_vistoria}
+        )
 
     instalacoes = OrdemServico.objects.filter(
         criado_por=request.user, tipo=TipoOS.INSTALACAO, status=StatusOS.CONCLUIDA
@@ -140,8 +123,8 @@ def medicao(request):
         valor_custos = sum((u.subtotal() for u in custos), start=0)
         valor_os = valor_painel + valor_padrao + valor_materiais + valor_custos
 
-        periodo = periodo_para_contribuicao(cliente, os.data_conclusao)
-        grupos[periodo].append({"cliente": cliente, "descricao": "Instalação", "valor": valor_os})
+        periodo = periodo_para_os(os)
+        grupos[periodo].append({"cliente": cliente, "os": os, "descricao": "Instalação", "valor": valor_os})
 
     hoje = timezone.localdate()
     fechamentos = []

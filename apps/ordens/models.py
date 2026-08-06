@@ -34,6 +34,11 @@ class OrdemServico(models.Model):
     data_agendada = models.DateField("Data agendada")
     data_conclusao = models.DateTimeField("Data de conclusão", null=True, blank=True)
     observacoes = models.TextField("Observações internas", blank=True)
+    data_referencia_medicao = models.DateField(
+        "Data de referência da medição (admin)", null=True, blank=True,
+        help_text="Preenchido só pelo administrativo, quando essa OS específica precisa entrar "
+        "em outra semana de fechamento além da semana da data agendada. Deixe em branco no uso normal.",
+    )
     documento_pdf_1 = models.FileField(
         "Documento anexo 1 (PDF)", upload_to="os_documentos/", null=True, blank=True,
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],

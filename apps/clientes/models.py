@@ -14,11 +14,6 @@ class Cliente(models.Model):
     precisa_material_ca = models.BooleanField("Vai precisar de material C.A.", default=False)
     pago = models.BooleanField("Pago", default=False)
     data_pagamento = models.DateTimeField("Pago em", null=True, blank=True)
-    data_referencia_medicao = models.DateField(
-        "Data de referência da medição", null=True, blank=True,
-        help_text="Usada só para decidir em qual semana de fechamento o cliente entra. "
-        "Deixe em branco para usar a data de cadastro.",
-    )
     criado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
