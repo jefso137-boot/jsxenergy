@@ -1,3 +1,6 @@
+import datetime
+from collections import defaultdict
+
 from django.contrib import messages
 from django.db.models import F, Sum
 from django.http import HttpResponse
@@ -11,6 +14,16 @@ from apps.relatorios.pdf import gerar_recibo_pdf_bytes, os_referencia_recibo
 
 from .forms import ClienteCriarForm
 from .models import Cliente
+
+
+def periodo_fechamento(data):
+    """Semana de fechamento: quinta-feira até a quarta-feira seguinte
+    (recebimento sempre na quinta seguinte ao fechamento)."""
+    data_local = timezone.localtime(data).date() if timezone.is_aware(data) else data
+    dias_desde_quinta = (data_local.weekday() - 3) % 7  # quinta-feira = 3
+    inicio = data_local - datetime.timedelta(days=dias_desde_quinta)
+    fim = inicio + datetime.timedelta(days=6)
+    return inicio, fim
 
 
 @lider_required
@@ -76,17 +89,48 @@ def medicao(request):
             messages.success(request, f"{cliente.nome} marcado como pendente.")
         return redirect("lider_medicao")
 
-    clientes = Cliente.objects.filter(criado_por=request.user).order_by("pago", "nome")
-    linhas = [{"cliente": c, "valor_total": c.valor_total()} for c in clientes]
-    valor_pendente = sum((l["valor_total"] for l in linhas if not l["cliente"].pago), start=0)
-    valor_pago = sum((l["valor_total"] for l in linhas if l["cliente"].pago), start=0)
+    clientes = Cliente.objects.filter(criado_por=request.user).order_by("-criado_em")
+
+    grupos = defaultdict(list)
+    for cliente in clientes:
+        periodo = periodo_fechamento(cliente.criado_em)
+        grupos[periodo].append({"cliente": cliente, "valor_total": cliente.valor_total()})
+
+    hoje = timezone.localdate()
+    fechamentos = []
+    for (inicio, fim), linhas in sorted(grupos.items(), key=lambda item: item[0][0], reverse=True):
+        fechamentos.append(
+            {
+                "inicio": inicio,
+                "fim": fim,
+                "recebimento": fim + datetime.timedelta(days=1),
+                "aberto": hoje <= fim,
+                "linhas": linhas,
+                "valor_pendente": sum((l["valor_total"] for l in linhas if not l["cliente"].pago), start=0),
+                "valor_pago": sum((l["valor_total"] for l in linhas if l["cliente"].pago), start=0),
+            }
+        )
 
     context = {
-        "linhas": linhas,
-        "valor_pendente": valor_pendente,
-        "valor_pago": valor_pago,
+        "fechamentos": fechamentos,
+        "valor_pendente": sum((f["valor_pendente"] for f in fechamentos), start=0),
+        "valor_pago": sum((f["valor_pago"] for f in fechamentos), start=0),
     }
     return render(request, "lider/medicao.html", context)
+
+
+@lider_required
+def calculadora(request):
+    from apps.financas.models import ConfiguracaoPreco, CustoExtraCatalogo, MaterialCatalogo
+
+    precos = ConfiguracaoPreco.get_solo()
+    context = {
+        "valor_placa": precos.valor_placa,
+        "valor_padrao": precos.valor_padrao,
+        "custos_extras": CustoExtraCatalogo.objects.filter(ativo=True),
+        "materiais": MaterialCatalogo.objects.filter(ativo=True),
+    }
+    return render(request, "lider/calculadora.html", context)
 
 
 @lider_required

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Calculadora — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{% url 'lider_minhas_os' %}" class="text-sm text-gray-500">&larr; Minhas OS</a>
+
+<h1 class="text-lg font-extrabold text-navy mt-2">Calculadora de serviço</h1>
+<p class="text-sm text-gray-500 mb-4">Simule o valor de um serviço antes de fechar com o cliente. Os preços são os mesmos cadastrados na plataforma.</p>
+
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Instalação</h2>
+    <div class="space-y-3">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-medium">Painel</p>
+                <p class="text-xs text-gray-400">R$ {{ valor_placa|floatformat:2 }} / unidade</p>
+            </div>
+            <input type="number" min="0" value="0" data-preco="{{ valor_placa|stringformat:'0.2f' }}"
+                   class="calc-item w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        </div>
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-medium">Padrão convencional</p>
+                <p class="text-xs text-gray-400">R$ {{ valor_padrao|floatformat:2 }} / unidade</p>
+            </div>
+            <input type="number" min="0" value="0" data-preco="{{ valor_padrao|stringformat:'0.2f' }}"
+                   class="calc-item w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        </div>
+    </div>
+</section>
+
+{% if custos_extras %}
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Custos extras</h2>
+    <div class="space-y-3">
+        {% for c in custos_extras %}
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-medium">{{ c.nome }}</p>
+                <p class="text-xs text-gray-400">R$ {{ c.valor|floatformat:2 }} / unidade</p>
+            </div>
+            <input type="number" min="0" value="0" data-preco="{{ c.valor|stringformat:'0.2f' }}"
+                   class="calc-item w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if materiais %}
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Materiais</h2>
+    <div class="space-y-3">
+        {% for m in materiais %}
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-medium">{{ m.nome }}</p>
+                <p class="text-xs text-gray-400">R$ {{ m.valor|floatformat:2 }} / unidade</p>
+            </div>
+            <input type="number" min="0" value="0" data-preco="{{ m.valor|stringformat:'0.2f' }}"
+                   class="calc-item w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="bg-resumo-bg rounded-xl p-4 mb-8">
+    <div class="flex justify-between font-extrabold text-navy text-lg">
+        <span>Total simulado</span>
+        <span id="calc-total">R$ 0,00</span>
+    </div>
+</section>
+
+<script>
+(function () {
+    var inputs = document.querySelectorAll('.calc-item');
+    var totalEl = document.getElementById('calc-total');
+
+    function formatar(valor) {
+        return 'R$ ' + valor.toFixed(2).replace('.', ',');
+    }
+
+    function recalcular() {
+        var total = 0;
+        inputs.forEach(function (input) {
+            var preco = parseFloat(input.getAttribute('data-preco')) || 0;
+            var quantidade = parseFloat(input.value) || 0;
+            total += preco * quantidade;
+        });
+        totalEl.textContent = formatar(total);
+    }
+
+    inputs.forEach(function (input) {
+        input.addEventListener('input', recalcular);
+    });
+
+    recalcular();
+})();
+</script>
+
+{% endblock %}

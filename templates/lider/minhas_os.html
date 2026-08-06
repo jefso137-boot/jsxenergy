@@ -2,19 +2,20 @@
 {% block title %}Minhas OS criadas — JSX Energy{% endblock %}
 {% block content %}
 
-<div class="flex items-center justify-between mb-4">
-    <h1 class="text-lg font-extrabold text-navy">OS que você criou</h1>
-    <div class="flex gap-2">
-        <a href="{% url 'lider_medicao' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
-            Medição
-        </a>
-        <a href="{% url 'lider_meus_clientes' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
-            Clientes
-        </a>
-        <a href="{% url 'lider_criar_os' %}" class="bg-orange text-white text-sm font-bold rounded-lg px-4 py-2">
-            + Nova OS
-        </a>
-    </div>
+<h1 class="text-lg font-extrabold text-navy mb-3">OS que você criou</h1>
+<div class="flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'lider_medicao' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+        Medição
+    </a>
+    <a href="{% url 'lider_calculadora' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+        Calculadora
+    </a>
+    <a href="{% url 'lider_meus_clientes' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+        Clientes
+    </a>
+    <a href="{% url 'lider_criar_os' %}" class="bg-orange text-white text-sm font-bold rounded-lg px-4 py-2">
+        + Nova OS
+    </a>
 </div>
 
 {% if not ordens %}
