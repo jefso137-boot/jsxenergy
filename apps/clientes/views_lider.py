@@ -20,7 +20,7 @@ from apps.ordens.models import (
 from apps.relatorios.pdf import gerar_recibo_pdf_bytes, os_referencia_recibo
 
 from .forms import ClienteCriarForm
-from .models import Cliente
+from .models import Cliente, FechamentoMedicao
 
 
 def periodo_fechamento(data):
@@ -146,22 +146,25 @@ def medicao(request):
     hoje = timezone.localdate()
     fechamentos = []
     for (inicio, fim), linhas in sorted(grupos.items(), key=lambda item: item[0][0], reverse=True):
+        fechamento_obj, _ = FechamentoMedicao.objects.get_or_create(lider=request.user, inicio=inicio, fim=fim)
+        valor_semana = sum((l["valor"] for l in linhas), start=0)
         fechamentos.append(
             {
                 "inicio": inicio,
                 "fim": fim,
                 "recebimento": fim + datetime.timedelta(days=1),
                 "aberto": hoje <= fim,
+                "pago": fechamento_obj.pago,
+                "data_pagamento": fechamento_obj.data_pagamento,
                 "linhas": linhas,
-                "valor_pendente": sum((l["valor"] for l in linhas if not l["cliente"].pago), start=0),
-                "qtd_pago": sum(1 for l in linhas if l["cliente"].pago),
+                "valor_semana": valor_semana,
             }
         )
 
     context = {
         "fechamentos": fechamentos,
-        "valor_pendente": sum((f["valor_pendente"] for f in fechamentos), start=0),
-        "qtd_pago": sum((f["qtd_pago"] for f in fechamentos), start=0),
+        "valor_pendente": sum((f["valor_semana"] for f in fechamentos if not f["pago"]), start=0),
+        "qtd_pago": sum(1 for f in fechamentos if f["pago"]),
     }
     return render(request, "lider/medicao.html", context)
 

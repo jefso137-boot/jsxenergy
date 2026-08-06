@@ -13,7 +13,7 @@
     </div>
     <div class="bg-resumo-bg rounded-xl p-4">
         <p class="text-xs text-gray-500 mb-1">Pago</p>
-        <p class="text-lg font-extrabold text-navy">{{ qtd_pago }} cliente{{ qtd_pago|pluralize }} ok</p>
+        <p class="text-lg font-extrabold text-navy">{{ qtd_pago }} semana{{ qtd_pago|pluralize }} ok</p>
     </div>
 </div>
 
@@ -27,8 +27,13 @@
         <div>
             <p class="text-sm font-bold text-navy">Fechamento {{ fechamento.inicio|date:"d/m" }} a {{ fechamento.fim|date:"d/m" }}</p>
             <p class="text-xs text-gray-400">Recebimento em {{ fechamento.recebimento|date:"d/m/Y" }}</p>
+            {% if fechamento.pago %}
+            <p class="text-xs text-gray-400">Pago em {{ fechamento.data_pagamento|date:"d/m/Y" }}</p>
+            {% endif %}
         </div>
-        {% if fechamento.aberto %}
+        {% if fechamento.pago %}
+        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Pago</span>
+        {% elif fechamento.aberto %}
         <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Em aberto</span>
         {% else %}
         <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-600">Fechado</span>
@@ -38,22 +43,10 @@
     <div class="space-y-3">
         {% for linha in fechamento.linhas %}
         <div class="bg-white rounded-xl shadow p-4">
-            <div class="flex items-center justify-between mb-1">
-                <a href="{% url 'lider_cliente_detalhe' linha.cliente.pk %}" class="font-bold text-navy">{{ linha.cliente.nome }}</a>
-                {% if linha.cliente.pago %}
-                <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Pago</span>
-                {% else %}
-                <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Pendente</span>
-                {% endif %}
-            </div>
-            {% if linha.cliente.pago %}
+            <a href="{% url 'lider_cliente_detalhe' linha.cliente.pk %}" class="block font-bold text-navy mb-1">{{ linha.cliente.nome }}</a>
             <p class="text-sm text-body-gray">{{ linha.descricao }}</p>
-            <p class="text-sm font-bold text-green-700 mb-2">✓ Pago — semana ok</p>
-            <p class="text-xs text-gray-400 mb-2">Pago em {{ linha.cliente.data_pagamento|date:"d/m/Y" }}</p>
-            {% else %}
-            <p class="text-sm text-body-gray">{{ linha.descricao }}</p>
+            {% if not fechamento.pago %}
             <p class="text-sm text-body-gray mb-2">R$ {{ linha.valor|floatformat:2 }}</p>
-            <p class="text-xs text-gray-400 mb-2">Marcar como pago é feito pelo administrativo.</p>
             {% endif %}
 
             <details class="mt-2">

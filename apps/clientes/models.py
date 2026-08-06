@@ -73,3 +73,29 @@ class Cliente(models.Model):
             + self.valor_materiais_usados()
             + self.valor_custos_extras_usados()
         )
+
+
+class FechamentoMedicao(models.Model):
+    """Controle de pagamento por semana de medição (quinta a quarta), por líder.
+    Criado automaticamente quando a semana aparece na tela de Medição; o
+    admin marca "pago" quando efetua o pagamento daquele fechamento."""
+
+    lider = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="fechamentos_medicao",
+        verbose_name="Líder",
+    )
+    inicio = models.DateField("Início da semana")
+    fim = models.DateField("Fim da semana")
+    pago = models.BooleanField("Pago", default=False)
+    data_pagamento = models.DateTimeField("Pago em", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Fechamento de medição"
+        verbose_name_plural = "Fechamentos de medição"
+        unique_together = ("lider", "inicio", "fim")
+        ordering = ["-inicio"]
+
+    def __str__(self):
+        return f"{self.lider} — {self.inicio:%d/%m} a {self.fim:%d/%m}"
