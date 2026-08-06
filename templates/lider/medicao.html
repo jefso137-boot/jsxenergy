@@ -18,7 +18,7 @@
 </div>
 
 {% if not fechamentos %}
-<p class="text-sm text-gray-500">Nenhum cliente cadastrado ainda.</p>
+<p class="text-sm text-gray-500">Nenhuma OS concluída (dada baixa) ainda.</p>
 {% endif %}
 
 {% for fechamento in fechamentos %}
@@ -46,21 +46,13 @@
                 <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Pendente</span>
                 {% endif %}
             </div>
-            <p class="text-sm text-body-gray mb-2">R$ {{ linha.valor_total|floatformat:2 }}</p>
+            <p class="text-sm text-body-gray">{{ linha.descricao }}</p>
+            <p class="text-sm text-body-gray mb-2">R$ {{ linha.valor|floatformat:2 }}</p>
             {% if linha.cliente.pago %}
             <p class="text-xs text-gray-400 mb-2">Pago em {{ linha.cliente.data_pagamento|date:"d/m/Y" }}</p>
+            {% else %}
+            <p class="text-xs text-gray-400 mb-2">Marcar como pago é feito pelo administrativo.</p>
             {% endif %}
-            <form method="post" class="inline-block mr-2">
-                {% csrf_token %}
-                <input type="hidden" name="cliente_id" value="{{ linha.cliente.pk }}">
-                {% if linha.cliente.pago %}
-                <input type="hidden" name="acao" value="marcar_pendente">
-                <button type="submit" class="text-xs text-gray-500 underline">Marcar como pendente</button>
-                {% else %}
-                <input type="hidden" name="acao" value="marcar_pago">
-                <button type="submit" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">Marcar como pago</button>
-                {% endif %}
-            </form>
 
             <details class="mt-2">
                 <summary class="text-xs text-gray-400 cursor-pointer">Mover semana de medição</summary>

@@ -9,7 +9,14 @@ from django.utils import timezone
 
 from apps.checklists.models import TipoOS
 from apps.ordens.decorators import lider_required
-from apps.ordens.models import OrdemServico, OsChecklistResposta, OsCustoExtraFoto, OsCustoExtraUso
+from apps.ordens.models import (
+    OrdemServico,
+    OsChecklistResposta,
+    OsCustoExtraFoto,
+    OsCustoExtraUso,
+    OsMaterialUso,
+    StatusOS,
+)
 from apps.relatorios.pdf import gerar_recibo_pdf_bytes, os_referencia_recibo
 
 from .forms import ClienteCriarForm
@@ -26,8 +33,14 @@ def periodo_fechamento(data):
     return inicio, fim
 
 
-def data_referencia_do_cliente(cliente):
-    return cliente.data_referencia_medicao or timezone.localtime(cliente.criado_em).date()
+def periodo_para_contribuicao(cliente, data_conclusao):
+    """Semana de fechamento de um valor apurado numa OS concluída: usa a
+    data manual do cliente (se movido) ou a data de conclusão da própria OS."""
+    if cliente.data_referencia_medicao:
+        data = cliente.data_referencia_medicao
+    else:
+        data = timezone.localtime(data_conclusao).date()
+    return periodo_fechamento(data)
 
 
 @lider_required
@@ -87,17 +100,7 @@ def medicao(request):
     if request.method == "POST":
         cliente = get_object_or_404(Cliente, pk=request.POST.get("cliente_id"), criado_por=request.user)
         acao = request.POST.get("acao")
-        if acao == "marcar_pago":
-            cliente.pago = True
-            cliente.data_pagamento = timezone.now()
-            cliente.save(update_fields=["pago", "data_pagamento"])
-            messages.success(request, f"{cliente.nome} marcado como pago.")
-        elif acao == "marcar_pendente":
-            cliente.pago = False
-            cliente.data_pagamento = None
-            cliente.save(update_fields=["pago", "data_pagamento"])
-            messages.success(request, f"{cliente.nome} marcado como pendente.")
-        elif acao == "mover_semana":
+        if acao == "mover_semana":
             nova_data = request.POST.get("nova_data")
             try:
                 cliente.data_referencia_medicao = datetime.date.fromisoformat(nova_data)
@@ -112,12 +115,33 @@ def medicao(request):
             messages.success(request, f"{cliente.nome} voltou a usar a data de cadastro.")
         return redirect("lider_medicao")
 
-    clientes = Cliente.objects.filter(criado_por=request.user).order_by("-criado_em")
+    from apps.financas.models import ConfiguracaoPreco
 
+    precos = ConfiguracaoPreco.get_solo()
     grupos = defaultdict(list)
-    for cliente in clientes:
-        periodo = periodo_fechamento(data_referencia_do_cliente(cliente))
-        grupos[periodo].append({"cliente": cliente, "valor_total": cliente.valor_total()})
+
+    vistorias = OrdemServico.objects.filter(
+        criado_por=request.user, tipo=TipoOS.VISTORIA, status=StatusOS.CONCLUIDA
+    ).select_related("cliente")
+    for os in vistorias:
+        periodo = periodo_para_contribuicao(os.cliente, os.data_conclusao)
+        grupos[periodo].append({"cliente": os.cliente, "descricao": "Vistoria", "valor": precos.valor_vistoria})
+
+    instalacoes = OrdemServico.objects.filter(
+        criado_por=request.user, tipo=TipoOS.INSTALACAO, status=StatusOS.CONCLUIDA
+    ).select_related("cliente")
+    for os in instalacoes:
+        cliente = os.cliente
+        valor_painel = cliente.quantidade_modulos * precos.valor_placa
+        valor_padrao = precos.valor_padrao if cliente.instalacao_padrao else 0
+        materiais = OsMaterialUso.objects.filter(os=os).select_related("material")
+        valor_materiais = sum((u.subtotal() for u in materiais), start=0)
+        custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
+        valor_custos = sum((u.subtotal() for u in custos), start=0)
+        valor_os = valor_painel + valor_padrao + valor_materiais + valor_custos
+
+        periodo = periodo_para_contribuicao(cliente, os.data_conclusao)
+        grupos[periodo].append({"cliente": cliente, "descricao": "Instalação", "valor": valor_os})
 
     hoje = timezone.localdate()
     fechamentos = []
@@ -129,8 +153,8 @@ def medicao(request):
                 "recebimento": fim + datetime.timedelta(days=1),
                 "aberto": hoje <= fim,
                 "linhas": linhas,
-                "valor_pendente": sum((l["valor_total"] for l in linhas if not l["cliente"].pago), start=0),
-                "valor_pago": sum((l["valor_total"] for l in linhas if l["cliente"].pago), start=0),
+                "valor_pendente": sum((l["valor"] for l in linhas if not l["cliente"].pago), start=0),
+                "valor_pago": sum((l["valor"] for l in linhas if l["cliente"].pago), start=0),
             }
         )
 
@@ -150,6 +174,7 @@ def calculadora(request):
     context = {
         "valor_placa": precos.valor_placa,
         "valor_padrao": precos.valor_padrao,
+        "valor_vistoria": precos.valor_vistoria,
         "custos_extras": CustoExtraCatalogo.objects.filter(ativo=True),
         "materiais": MaterialCatalogo.objects.filter(ativo=True),
     }

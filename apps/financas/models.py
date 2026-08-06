@@ -10,6 +10,9 @@ class ConfiguracaoPreco(models.Model):
     valor_padrao = models.DecimalField(
         "Valor da instalação do padrão", max_digits=10, decimal_places=2, default=0
     )
+    valor_vistoria = models.DecimalField(
+        "Valor da vistoria técnica", max_digits=10, decimal_places=2, default=100
+    )
     atualizado_em = models.DateTimeField("Atualizado em", auto_now=True)
 
     class Meta:

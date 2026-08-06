@@ -26,6 +26,14 @@
             <input type="number" min="0" value="0" data-preco="{{ valor_padrao|stringformat:'0.2f' }}"
                    class="calc-item w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         </div>
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-medium">Vistoria técnica</p>
+                <p class="text-xs text-gray-400">R$ {{ valor_vistoria|floatformat:2 }} / unidade</p>
+            </div>
+            <input type="number" min="0" value="0" data-preco="{{ valor_vistoria|stringformat:'0.2f' }}"
+                   class="calc-item w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        </div>
     </div>
 </section>
 

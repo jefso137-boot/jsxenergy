@@ -5,7 +5,7 @@ from .models import ConfiguracaoPreco, CustoExtraCatalogo, MaterialCatalogo
 
 @admin.register(ConfiguracaoPreco)
 class ConfiguracaoPrecoAdmin(admin.ModelAdmin):
-    list_display = ("valor_placa", "valor_padrao", "atualizado_em")
+    list_display = ("valor_placa", "valor_padrao", "valor_vistoria", "atualizado_em")
 
     def has_add_permission(self, request):
         return not ConfiguracaoPreco.objects.exists()
