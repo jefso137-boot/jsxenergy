@@ -13,7 +13,29 @@
     {% endif %}
 </div>
 {% if cliente.telefone %}<p class="text-sm text-body-gray">{{ cliente.telefone }}</p>{% endif %}
-{% if cliente.cidade %}<p class="text-xs text-gray-400 mb-4">{{ cliente.cidade }}</p>{% endif %}
+{% if cliente.cidade %}<p class="text-xs text-gray-400">{{ cliente.cidade }}</p>{% endif %}
+
+{% if cliente.link_localizacao or cliente.documento_pdf_1 or cliente.documento_pdf_2 %}
+<div class="flex flex-wrap gap-2 mt-2 mb-4">
+    {% if cliente.link_localizacao %}
+    <a href="{{ cliente.link_localizacao }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+        Localização
+    </a>
+    {% endif %}
+    {% if cliente.documento_pdf_1 %}
+    <a href="{{ cliente.documento_pdf_1.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+        Anexo 1
+    </a>
+    {% endif %}
+    {% if cliente.documento_pdf_2 %}
+    <a href="{{ cliente.documento_pdf_2.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+        Anexo 2
+    </a>
+    {% endif %}
+</div>
+{% else %}
+<div class="mb-4"></div>
+{% endif %}
 
 <section class="bg-resumo-bg rounded-xl p-4 mb-4">
     <h2 class="font-bold text-navy mb-2">Financeiro</h2>
@@ -84,6 +106,42 @@
     <p class="text-sm text-gray-500">Nenhuma instalação criada.</p>
     {% endif %}
 </section>
+
+{% if fotos_cliente %}
+<section class="bg-white rounded-xl shadow p-4 mb-4">
+    <h2 class="font-bold text-navy mb-3">Fotos</h2>
+    <div class="grid grid-cols-3 gap-2">
+        {% for foto in fotos_cliente %}
+        <img src="{{ foto.url }}" data-full="{{ foto.url }}"
+             class="foto-cliente-thumb w-full h-24 object-cover rounded-lg cursor-pointer">
+        {% endfor %}
+    </div>
+</section>
+
+<div id="foto-lightbox" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-6">
+    <img id="foto-lightbox-img" src="" class="max-w-full max-h-full rounded-lg">
+</div>
+
+<script>
+(function () {
+    var lightbox = document.getElementById('foto-lightbox');
+    var lightboxImg = document.getElementById('foto-lightbox-img');
+    if (!lightbox) return;
+
+    document.querySelectorAll('.foto-cliente-thumb').forEach(function (thumb) {
+        thumb.addEventListener('click', function () {
+            lightboxImg.src = thumb.getAttribute('data-full');
+            lightbox.classList.remove('hidden');
+        });
+    });
+
+    lightbox.addEventListener('click', function () {
+        lightbox.classList.add('hidden');
+        lightboxImg.src = '';
+    });
+})();
+</script>
+{% endif %}
 
 <a href="{% url 'lider_criar_os' %}?cliente={{ cliente.pk }}" class="block text-center bg-orange text-white font-bold rounded-lg py-3 mb-8">
     + Nova OS pra esse cliente

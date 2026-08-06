@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.checklists.models import TipoOS
 from apps.ordens.decorators import lider_required
-from apps.ordens.models import OrdemServico, OsCustoExtraUso
+from apps.ordens.models import OrdemServico, OsChecklistResposta, OsCustoExtraFoto, OsCustoExtraUso
 from apps.relatorios.pdf import gerar_recibo_pdf_bytes, os_referencia_recibo
 
 from .forms import ClienteCriarForm
@@ -24,6 +24,10 @@ def periodo_fechamento(data):
     inicio = data_local - datetime.timedelta(days=dias_desde_quinta)
     fim = inicio + datetime.timedelta(days=6)
     return inicio, fim
+
+
+def data_referencia_do_cliente(cliente):
+    return cliente.data_referencia_medicao or timezone.localtime(cliente.criado_em).date()
 
 
 @lider_required
@@ -44,6 +48,10 @@ def cliente_detalhe(request, pk):
         .order_by("custo__nome")
     )
 
+    fotos_checklist = OsChecklistResposta.objects.filter(os__cliente=cliente, os__criado_por=request.user)
+    fotos_custo_extra = OsCustoExtraFoto.objects.filter(uso__os__cliente=cliente, uso__os__criado_por=request.user)
+    fotos_cliente = [r.foto for r in fotos_checklist if r.foto] + [f.foto for f in fotos_custo_extra]
+
     context = {
         "cliente": cliente,
         "vistorias": ordens.filter(tipo=TipoOS.VISTORIA),
@@ -53,6 +61,7 @@ def cliente_detalhe(request, pk):
         "custos_extras_agrupados": custos_extras_agrupados,
         "valor_total": cliente.valor_total(),
         "tem_recibo_disponivel": os_referencia_recibo(cliente) is not None,
+        "fotos_cliente": fotos_cliente,
     }
     return render(request, "lider/cliente_detalhe.html", context)
 
@@ -77,23 +86,37 @@ def recibo_cliente(request, pk):
 def medicao(request):
     if request.method == "POST":
         cliente = get_object_or_404(Cliente, pk=request.POST.get("cliente_id"), criado_por=request.user)
-        if request.POST.get("acao") == "marcar_pago":
+        acao = request.POST.get("acao")
+        if acao == "marcar_pago":
             cliente.pago = True
             cliente.data_pagamento = timezone.now()
             cliente.save(update_fields=["pago", "data_pagamento"])
             messages.success(request, f"{cliente.nome} marcado como pago.")
-        elif request.POST.get("acao") == "marcar_pendente":
+        elif acao == "marcar_pendente":
             cliente.pago = False
             cliente.data_pagamento = None
             cliente.save(update_fields=["pago", "data_pagamento"])
             messages.success(request, f"{cliente.nome} marcado como pendente.")
+        elif acao == "mover_semana":
+            nova_data = request.POST.get("nova_data")
+            try:
+                cliente.data_referencia_medicao = datetime.date.fromisoformat(nova_data)
+            except (TypeError, ValueError):
+                messages.error(request, "Data inválida.")
+                return redirect("lider_medicao")
+            cliente.save(update_fields=["data_referencia_medicao"])
+            messages.success(request, f"{cliente.nome} movido de semana de medição.")
+        elif acao == "resetar_semana":
+            cliente.data_referencia_medicao = None
+            cliente.save(update_fields=["data_referencia_medicao"])
+            messages.success(request, f"{cliente.nome} voltou a usar a data de cadastro.")
         return redirect("lider_medicao")
 
     clientes = Cliente.objects.filter(criado_por=request.user).order_by("-criado_em")
 
     grupos = defaultdict(list)
     for cliente in clientes:
-        periodo = periodo_fechamento(cliente.criado_em)
+        periodo = periodo_fechamento(data_referencia_do_cliente(cliente))
         grupos[periodo].append({"cliente": cliente, "valor_total": cliente.valor_total()})
 
     hoje = timezone.localdate()
@@ -136,7 +159,7 @@ def calculadora(request):
 @lider_required
 def criar_cliente(request):
     if request.method == "POST":
-        form = ClienteCriarForm(request.POST)
+        form = ClienteCriarForm(request.POST, request.FILES)
         if form.is_valid():
             cliente = form.save(commit=False)
             cliente.criado_por = request.user

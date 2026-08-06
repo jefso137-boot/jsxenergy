@@ -13,7 +13,7 @@
 </div>
 {% endif %}
 
-<form method="post" class="bg-white rounded-xl shadow p-4 space-y-4">
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow p-4 space-y-4">
     {% csrf_token %}
     <div>
         <label class="block text-sm font-medium mb-1">Nome</label>
@@ -39,6 +39,21 @@
         <label class="block text-sm font-medium mb-1">Cidade</label>
         {% render_field form.cidade class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
         {% if form.cidade.errors %}<p class="text-xs text-red-600 mt-1">{{ form.cidade.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Link da localização (opcional)</label>
+        {% render_field form.link_localizacao class="w-full rounded-lg border border-gray-300 px-3 py-2" placeholder="https://maps.google.com/..." %}
+        {% if form.link_localizacao.errors %}<p class="text-xs text-red-600 mt-1">{{ form.link_localizacao.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Anexo 1 (PDF, opcional)</label>
+        {% render_field form.documento_pdf_1 class="w-full text-sm" %}
+        {% if form.documento_pdf_1.errors %}<p class="text-xs text-red-600 mt-1">{{ form.documento_pdf_1.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Anexo 2 (PDF, opcional)</label>
+        {% render_field form.documento_pdf_2 class="w-full text-sm" %}
+        {% if form.documento_pdf_2.errors %}<p class="text-xs text-red-600 mt-1">{{ form.documento_pdf_2.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Quantidade de módulos</label>

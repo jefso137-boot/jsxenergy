@@ -50,7 +50,7 @@
             {% if linha.cliente.pago %}
             <p class="text-xs text-gray-400 mb-2">Pago em {{ linha.cliente.data_pagamento|date:"d/m/Y" }}</p>
             {% endif %}
-            <form method="post">
+            <form method="post" class="inline-block mr-2">
                 {% csrf_token %}
                 <input type="hidden" name="cliente_id" value="{{ linha.cliente.pk }}">
                 {% if linha.cliente.pago %}
@@ -61,6 +61,31 @@
                 <button type="submit" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">Marcar como pago</button>
                 {% endif %}
             </form>
+
+            <details class="mt-2">
+                <summary class="text-xs text-gray-400 cursor-pointer">Mover semana de medição</summary>
+                <div class="mt-2 space-y-2">
+                    {% if linha.cliente.data_referencia_medicao %}
+                    <p class="text-xs text-gray-400">Usando data manual: {{ linha.cliente.data_referencia_medicao|date:"d/m/Y" }}</p>
+                    {% endif %}
+                    <form method="post" class="flex items-center gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="cliente_id" value="{{ linha.cliente.pk }}">
+                        <input type="hidden" name="acao" value="mover_semana">
+                        <input type="date" name="nova_data" required
+                               class="text-xs rounded-lg border border-gray-300 px-2 py-1.5">
+                        <button type="submit" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">Mover</button>
+                    </form>
+                    {% if linha.cliente.data_referencia_medicao %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="cliente_id" value="{{ linha.cliente.pk }}">
+                        <input type="hidden" name="acao" value="resetar_semana">
+                        <button type="submit" class="text-xs text-gray-500 underline">Usar data de cadastro novamente</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </details>
         </div>
         {% endfor %}
     </div>

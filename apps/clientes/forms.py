@@ -12,11 +12,17 @@ class ClienteCriarForm(forms.ModelForm):
             "email",
             "endereco",
             "cidade",
+            "link_localizacao",
+            "documento_pdf_1",
+            "documento_pdf_2",
             "quantidade_modulos",
             "instalacao_padrao",
             "precisa_material_ca",
         ]
         labels = {
+            "link_localizacao": "Link da localização",
+            "documento_pdf_1": "Anexo 1 (PDF)",
+            "documento_pdf_2": "Anexo 2 (PDF)",
             "quantidade_modulos": "Quantidade de módulos",
             "instalacao_padrao": "Terá instalação de padrão?",
             "precisa_material_ca": "Vai precisar de material C.A.?",
