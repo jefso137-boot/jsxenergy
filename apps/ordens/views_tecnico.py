@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
@@ -18,6 +20,8 @@ from .models import (
     StatusOS,
 )
 from .utils import checklist_com_respostas
+
+logger = logging.getLogger(__name__)
 
 
 @tecnico_required
@@ -188,9 +192,27 @@ def detalhe_os(request, pk):
             os.data_conclusao = timezone.now()
             os.save()
 
-            gerar_pdf_os(os)
+            try:
+                gerar_pdf_os(os)
+                messages.success(request, "OS concluída e relatório PDF gerado com sucesso.")
+            except Exception:
+                logger.exception("Falha ao gerar PDF da OS #%s (tipo=%s)", os.pk, os.tipo)
+                messages.error(
+                    request,
+                    "OS concluída, mas houve um erro ao gerar o PDF. Use o botão \"Gerar PDF do relatório\" "
+                    "abaixo para tentar novamente.",
+                )
+            return redirect("tecnico_detalhe_os", pk=os.pk)
 
-            messages.success(request, "OS concluída e relatório PDF gerado com sucesso.")
+        if acao == "gerar_pdf":
+            if os.status != StatusOS.CONCLUIDA:
+                raise PermissionDenied("Só é possível gerar o PDF de uma OS concluída.")
+            try:
+                gerar_pdf_os(os)
+                messages.success(request, "PDF gerado com sucesso.")
+            except Exception:
+                logger.exception("Falha ao gerar PDF da OS #%s (tipo=%s)", os.pk, os.tipo)
+                messages.error(request, "Não foi possível gerar o PDF. Tente novamente em instantes.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
     materiais_usados = os.materiais_usados.select_related("material").all()

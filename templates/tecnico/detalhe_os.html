@@ -40,6 +40,14 @@
    class="block text-center bg-navy text-white font-bold rounded-lg py-3 mb-4">
     Ver PDF do relatório
 </a>
+{% else %}
+<form method="post" class="mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="acao" value="gerar_pdf">
+    <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-3">
+        Gerar PDF do relatório
+    </button>
+</form>
 {% endif %}
 {% endif %}
 
@@ -83,6 +91,7 @@
                         <input type="file" name="item_{{ linha.item.id }}" accept="image/*" class="hidden">
                     </label>
                 </div>
+                <div class="foto-preview mt-2"></div>
                 {% endif %}
 
                 <input type="text" name="obs_{{ linha.item.id }}" value="{{ linha.observacao }}"
@@ -101,15 +110,40 @@
 </section>
 
 <script>
-(function () {
-    document.querySelectorAll('.foto-picker input[type="file"]').forEach(function (input) {
+function jsxBindFotoPicker(picker) {
+    var inputs = picker.querySelectorAll('input[type="file"]');
+    var preview = picker.nextElementSibling;
+    if (!preview || !preview.classList.contains('foto-preview')) {
+        preview = null;
+    }
+
+    inputs.forEach(function (input) {
         input.addEventListener('change', function () {
             if (!input.files.length) return;
-            input.closest('.foto-picker').querySelectorAll('input[type="file"]').forEach(function (outro) {
+            inputs.forEach(function (outro) {
                 if (outro !== input) outro.value = '';
             });
+            if (preview) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.innerHTML = '';
+                    var img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-20 h-20 object-cover rounded-lg';
+                    var legenda = document.createElement('p');
+                    legenda.className = 'text-xs text-green-700 font-bold mt-1';
+                    legenda.textContent = 'Foto selecionada';
+                    preview.appendChild(img);
+                    preview.appendChild(legenda);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         });
     });
+}
+
+(function () {
+    document.querySelectorAll('.foto-picker').forEach(jsxBindFotoPicker);
 })();
 </script>
 
@@ -403,6 +437,8 @@
             fotosWrapper.className = 'space-y-2';
 
             var criarFileInput = function () {
+                var container = document.createElement('div');
+
                 var picker = document.createElement('div');
                 picker.className = 'foto-picker flex gap-2';
 
@@ -430,16 +466,15 @@
                 picker.appendChild(labelCamera);
                 picker.appendChild(labelGaleria);
 
-                [inputCamera, inputGaleria].forEach(function (inp) {
-                    inp.addEventListener('change', function () {
-                        if (!inp.files.length) return;
-                        [inputCamera, inputGaleria].forEach(function (outro) {
-                            if (outro !== inp) outro.value = '';
-                        });
-                    });
-                });
+                var preview = document.createElement('div');
+                preview.className = 'foto-preview mt-2';
 
-                return picker;
+                container.appendChild(picker);
+                container.appendChild(preview);
+
+                jsxBindFotoPicker(picker);
+
+                return container;
             };
 
             fotosWrapper.appendChild(criarFileInput());
