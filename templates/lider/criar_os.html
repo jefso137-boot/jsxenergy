@@ -36,12 +36,12 @@
     </div>
     <div id="anexos-instalacao" class="space-y-4 hidden">
         <div>
-            <label class="block text-sm font-medium mb-1">Anexo 1 (PDF, opcional)</label>
+            <label class="block text-sm font-medium mb-1">Projeto (PDF, opcional)</label>
             {% render_field form.documento_pdf_1 class="w-full text-sm" %}
             {% if form.documento_pdf_1.errors %}<p class="text-xs text-red-600 mt-1">{{ form.documento_pdf_1.errors|join:", " }}</p>{% endif %}
         </div>
         <div>
-            <label class="block text-sm font-medium mb-1">Anexo 2 (PDF, opcional)</label>
+            <label class="block text-sm font-medium mb-1">Vistoria (PDF, opcional)</label>
             {% render_field form.documento_pdf_2 class="w-full text-sm" %}
             {% if form.documento_pdf_2.errors %}<p class="text-xs text-red-600 mt-1">{{ form.documento_pdf_2.errors|join:", " }}</p>{% endif %}
         </div>

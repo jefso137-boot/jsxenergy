@@ -11,8 +11,8 @@ class OsCriarForm(forms.ModelForm):
         model = OrdemServico
         fields = ["cliente", "tipo", "tecnico", "data_agendada", "observacoes", "documento_pdf_1", "documento_pdf_2"]
         labels = {
-            "documento_pdf_1": "Anexo 1 (PDF)",
-            "documento_pdf_2": "Anexo 2 (PDF)",
+            "documento_pdf_1": "Projeto (PDF)",
+            "documento_pdf_2": "Vistoria (PDF)",
         }
         widgets = {
             "data_agendada": forms.DateInput(attrs={"type": "date"}),

@@ -46,11 +46,11 @@ class OrdemServico(models.Model):
         "em outra semana de fechamento além da semana da data agendada. Deixe em branco no uso normal.",
     )
     documento_pdf_1 = models.FileField(
-        "Documento anexo 1 (PDF)", upload_to="os_documentos/", null=True, blank=True,
+        "Projeto (PDF)", upload_to="os_documentos/", null=True, blank=True,
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
     )
     documento_pdf_2 = models.FileField(
-        "Documento anexo 2 (PDF)", upload_to="os_documentos/", null=True, blank=True,
+        "Vistoria (PDF)", upload_to="os_documentos/", null=True, blank=True,
         validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
     )
 
