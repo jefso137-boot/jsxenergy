@@ -1,10 +1,16 @@
+import logging
+
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.relatorios.pdf import gerar_pdf_os
+
 from .decorators import lider_required
 from .forms import OsCriarForm
-from .models import OrdemServico
+from .models import OrdemServico, StatusOS
 from .utils import checklist_com_respostas
+
+logger = logging.getLogger(__name__)
 
 
 @lider_required
@@ -42,6 +48,19 @@ def criar_os(request):
 @lider_required
 def detalhe_os(request, pk):
     os = get_object_or_404(OrdemServico, pk=pk, criado_por=request.user)
+
+    if request.method == "POST" and request.POST.get("acao") == "gerar_pdf":
+        if os.status != StatusOS.CONCLUIDA:
+            messages.error(request, "Só é possível gerar o PDF de uma OS concluída.")
+        else:
+            try:
+                gerar_pdf_os(os)
+                messages.success(request, "PDF gerado com sucesso.")
+            except Exception:
+                logger.exception("Falha ao gerar PDF da OS #%s (tipo=%s)", os.pk, os.tipo)
+                messages.error(request, "Não foi possível gerar o PDF. Tente novamente em instantes.")
+        return redirect("lider_detalhe_os", pk=os.pk)
+
     materiais_usados = os.materiais_usados.select_related("material").all()
     custos_extras_usados = os.custos_extras.select_related("custo").all()
     context = {
