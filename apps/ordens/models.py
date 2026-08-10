@@ -12,6 +12,12 @@ class StatusOS(models.TextChoices):
     CONCLUIDA = "CONCLUIDA", "Concluída"
 
 
+class StatusPill(models.TextChoices):
+    FINALIZADA = "FINALIZADA", "Finalizada"
+    PENDENTE = "PENDENTE", "Pendente"
+    CANCELADA = "CANCELADA", "Cancelada"
+
+
 class OrdemServico(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="ordens_servico")
     tipo = models.CharField("Tipo de OS", max_length=12, choices=TipoOS.choices)
@@ -50,8 +56,8 @@ class OrdemServico(models.Model):
 
     # Campos usados na geração do PDF (spec "editable_fields_for_new_client")
     status_pill_text = models.CharField(
-        "Selo de status (PDF)", max_length=60, blank=True,
-        help_text="Ex.: INSTALAÇÃO FINALIZADA, VISTORIA APROVADA, APROVADO COM RESSALVAS",
+        "Selo de status (PDF)", max_length=60, blank=True, choices=StatusPill.choices,
+        help_text="Finalizada, pendente ou cancelada.",
     )
     cover_footnote = models.CharField(
         "Rodapé da capa (PDF)", max_length=200, blank=True,

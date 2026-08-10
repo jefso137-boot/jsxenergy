@@ -43,7 +43,6 @@ class OsNarrativaForm(forms.ModelForm):
             "narrativa_paragrafos": forms.Textarea(
                 attrs={"rows": 8, "placeholder": "Descreva o que foi feito/encontrado e a situação final"}
             ),
-            "status_pill_text": forms.TextInput(attrs={"placeholder": "Ex.: INSTALAÇÃO FINALIZADA"}),
             "descricao_recibo": forms.Textarea(
                 attrs={
                     "rows": 3,
