@@ -1,27 +1,56 @@
 import base64
+import io
+import logging
 import mimetypes
 
+import pillow_heif
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.template.loader import render_to_string
 from django.utils import timezone
+from PIL import Image, ImageOps, UnidentifiedImageError
 from weasyprint import HTML
 
 from apps.checklists.models import TipoCampo
+
+pillow_heif.register_heif_opener()
+
+logger = logging.getLogger(__name__)
 
 LOGO_PATH = settings.BASE_DIR / "static" / "images" / "jsx_energy_logo.jpeg"
 
 
 def _foto_para_data_uri(campo_arquivo):
+    """Decodifica a foto com Pillow (com suporte a HEIC das câmeras de iPhone) e
+    reconverte para JPEG antes de embutir no PDF - o WeasyPrint não consegue
+    renderizar HEIC diretamente, e confiar só na extensão do arquivo para o
+    mime-type falha sempre que ela não bate com o conteúdo real. Retorna None
+    se a foto estiver corrompida/ilegível, para essa foto não derrubar o
+    relatório inteiro.
+    """
     campo_arquivo.open("rb")
     try:
         conteudo = campo_arquivo.read()
     finally:
         campo_arquivo.close()
-    mime, _ = mimetypes.guess_type(campo_arquivo.name)
-    mime = mime or "image/jpeg"
-    b64 = base64.b64encode(conteudo).decode("ascii")
-    return f"data:{mime};base64,{b64}"
+
+    try:
+        imagem = Image.open(io.BytesIO(conteudo))
+        imagem = ImageOps.exif_transpose(imagem)
+        if imagem.mode not in ("RGB", "L"):
+            imagem = imagem.convert("RGB")
+        # Fotos de celular saem em 3000-4000px de lado, muito mais do que a página
+        # do PDF exibe - reduzir aqui evita estourar tempo/memória do WeasyPrint
+        # no plano free do Render ao gerar um relatório com várias fotos.
+        imagem.thumbnail((1600, 1600), Image.LANCZOS)
+        buffer = io.BytesIO()
+        imagem.save(buffer, format="JPEG", quality=82)
+    except (UnidentifiedImageError, OSError):
+        logger.warning("Foto ilegível ao gerar PDF: %s", campo_arquivo.name)
+        return None
+
+    b64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+    return f"data:image/jpeg;base64,{b64}"
 
 
 def _logo_data_uri():
