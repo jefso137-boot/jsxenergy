@@ -6,6 +6,9 @@
 
 <h1 class="text-lg font-extrabold text-navy mt-2">{{ os.cliente.nome }}</h1>
 <p class="text-sm text-body-gray mb-1">{{ os.get_tipo_display }} — técnico: {{ os.tecnico.get_full_name|default:os.tecnico.username }}</p>
+{% if os.cliente.endereco %}
+<p class="text-sm text-body-gray">{{ os.cliente.endereco }}{% if os.cliente.cidade %}, {{ os.cliente.cidade }}{% endif %}</p>
+{% endif %}
 <p class="text-xs text-gray-400 mb-1">Agendada para {{ os.data_agendada|date:"d/m/Y" }}</p>
 
 {% if os.cliente.link_localizacao or os.documento_pdf_1 or os.documento_pdf_2 %}
