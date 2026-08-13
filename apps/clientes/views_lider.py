@@ -2,7 +2,6 @@ import datetime
 from collections import defaultdict
 
 from django.contrib import messages
-from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -53,12 +52,15 @@ def cliente_detalhe(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk, criado_por=request.user)
     ordens = OrdemServico.objects.filter(cliente=cliente, criado_por=request.user).select_related("tecnico")
 
-    custos_extras_agrupados = (
-        OsCustoExtraUso.objects.filter(os__cliente=cliente)
-        .values("custo__nome")
-        .annotate(valor=Sum(F("quantidade") * F("custo__valor")))
-        .order_by("custo__nome")
-    )
+    # Agrupa via subtotal() (não uma multiplicação direta aqui) pra respeitar
+    # custos por m² (quantidade × área da placa × valor) e valor_manual - ver
+    # apps/relatorios/pdf.py:montar_contexto_recibo pro mesmo bug já corrigido lá.
+    valores_por_custo = defaultdict(lambda: 0)
+    for uso in OsCustoExtraUso.objects.filter(os__cliente=cliente).select_related("custo"):
+        valores_por_custo[uso.custo.nome] += uso.subtotal()
+    custos_extras_agrupados = [
+        {"custo__nome": nome, "valor": valor} for nome, valor in sorted(valores_por_custo.items())
+    ]
 
     fotos_checklist = OsChecklistResposta.objects.filter(os__cliente=cliente, os__criado_por=request.user)
     fotos_custo_extra = OsCustoExtraFoto.objects.filter(uso__os__cliente=cliente, uso__os__criado_por=request.user)

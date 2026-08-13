@@ -157,7 +157,7 @@ def os_referencia_recibo(cliente):
 
 
 def montar_contexto_recibo(cliente):
-    from django.db.models import Sum
+    from collections import defaultdict
 
     from apps.financas.models import ConfiguracaoPreco
     from apps.ordens.models import OsCustoExtraUso
@@ -187,19 +187,29 @@ def montar_contexto_recibo(cliente):
             }
         )
 
-    custos_extras = (
+    # Agrupa por custo usando subtotal() (não uma soma/multiplicação manual aqui) para
+    # respeitar corretamente custos por m² (quantidade × área da placa × valor) e
+    # valor_manual - duplicar essa conta aqui já causou o recibo cobrar só
+    # quantidade × valor, ignorando a área, para custos como a impermeabilização.
+    usos_extras = (
         OsCustoExtraUso.objects.filter(os__cliente=cliente)
-        .values("custo__nome", "custo__valor")
-        .annotate(quantidade_total=Sum("quantidade"))
+        .select_related("custo")
         .order_by("custo__nome")
     )
-    for item in custos_extras:
+    agrupado = defaultdict(lambda: {"preco": None, "quantidade": 0, "valor": 0})
+    for uso in usos_extras:
+        grupo = agrupado[uso.custo.nome]
+        grupo["preco"] = uso.custo.valor
+        grupo["quantidade"] += uso.quantidade
+        grupo["valor"] += uso.subtotal()
+
+    for nome, dados in agrupado.items():
         servicos.append(
             {
-                "nome": item["custo__nome"].upper(),
-                "preco": item["custo__valor"],
-                "quantidade": item["quantidade_total"],
-                "valor": item["quantidade_total"] * item["custo__valor"],
+                "nome": nome.upper(),
+                "preco": dados["preco"],
+                "quantidade": dados["quantidade"],
+                "valor": dados["valor"],
             }
         )
 
