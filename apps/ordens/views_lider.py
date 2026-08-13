@@ -8,7 +8,7 @@ from apps.relatorios.pdf import gerar_pdf_os
 from .decorators import lider_required
 from .forms import OsCriarForm
 from .models import OrdemServico, StatusOS
-from .utils import checklist_com_respostas
+from .utils import ORDENACAO_PRIORIDADE_STATUS, checklist_com_respostas
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,8 @@ def minhas_os(request):
     ordens = (
         OrdemServico.objects.filter(criado_por=request.user)
         .select_related("cliente", "tecnico")
-        .order_by("status", "-data_agendada")
+        .annotate(status_prioridade=ORDENACAO_PRIORIDADE_STATUS)
+        .order_by("status_prioridade", "-data_agendada")
     )
     return render(request, "lider/minhas_os.html", {"ordens": ordens})
 

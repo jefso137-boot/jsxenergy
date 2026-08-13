@@ -1,3 +1,15 @@
+from django.db.models import Case, IntegerField, Value, When
+
+from .models import StatusOS
+
+ORDENACAO_PRIORIDADE_STATUS = Case(
+    When(status=StatusOS.EM_ANDAMENTO, then=Value(0)),
+    When(status=StatusOS.ABERTA, then=Value(1)),
+    When(status=StatusOS.CONCLUIDA, then=Value(2)),
+    output_field=IntegerField(),
+)
+
+
 def checklist_com_respostas(os):
     template = os.get_checklist_template()
     if not template:

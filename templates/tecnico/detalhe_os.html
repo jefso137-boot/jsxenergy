@@ -57,10 +57,9 @@
 <!-- ===================== CHECKLIST ===================== -->
 <section class="bg-white rounded-xl shadow p-4 mb-4">
     <h2 class="font-bold text-navy mb-3">Checklist</h2>
-    {% if checklist %}
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="form-checklist">
         {% csrf_token %}
-        <input type="hidden" name="acao" value="salvar_checklist">
+        {% if checklist %}
         <div class="space-y-3">
             {% for linha in checklist %}
             <div class="border-b border-gray-100 pb-3">
@@ -103,13 +102,13 @@
             </div>
             {% endfor %}
         </div>
-        <button type="submit" class="w-full mt-3 bg-navy text-white font-bold rounded-lg py-2.5">
+        <button type="submit" name="acao" value="salvar_checklist" class="w-full mt-3 bg-navy text-white font-bold rounded-lg py-2.5">
             Salvar checklist
         </button>
+        {% else %}
+        <p class="text-sm text-gray-500">Nenhum template de checklist cadastrado para este tipo de OS. Peça ao administrativo para configurar em Checklists.</p>
+        {% endif %}
     </form>
-    {% else %}
-    <p class="text-sm text-gray-500">Nenhum template de checklist cadastrado para este tipo de OS. Peça ao administrativo para configurar em Checklists.</p>
-    {% endif %}
 </section>
 
 <script>
@@ -543,13 +542,11 @@ function jsxBindFotoPicker(picker) {
 
 <!-- ===================== DAR BAIXA ===================== -->
 {% if os.status != "CONCLUIDA" %}
-<form method="post" onsubmit="return confirm('Confirma a conclusão desta OS? O relatório em PDF será gerado.');">
-    {% csrf_token %}
-    <input type="hidden" name="acao" value="dar_baixa">
-    <button type="submit" class="w-full bg-orange text-white font-extrabold rounded-lg py-4 mb-8 text-lg">
-        Concluir
-    </button>
-</form>
+<button type="submit" form="form-checklist" name="acao" value="dar_baixa"
+        onclick="return confirm('Confirma a conclusão desta OS? O relatório em PDF será gerado com o checklist preenchido até aqui, mesmo que ainda não tenha sido salvo.');"
+        class="w-full bg-orange text-white font-extrabold rounded-lg py-4 mb-8 text-lg">
+    Concluir
+</button>
 {% endif %}
 
 {% endblock %}

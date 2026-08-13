@@ -19,7 +19,7 @@ from .models import (
     OsMaterialUso,
     StatusOS,
 )
-from .utils import checklist_com_respostas
+from .utils import ORDENACAO_PRIORIDADE_STATUS, checklist_com_respostas
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +29,28 @@ def minhas_os(request):
     ordens = (
         OrdemServico.objects.filter(tecnico=request.user)
         .select_related("cliente")
-        .order_by("status", "-data_agendada")
+        .annotate(status_prioridade=ORDENACAO_PRIORIDADE_STATUS)
+        .order_by("status_prioridade", "-data_agendada")
     )
     return render(request, "tecnico/minhas_os.html", {"ordens": ordens})
 
 
 def _get_os_do_tecnico(request, pk):
     return get_object_or_404(OrdemServico, pk=pk, tecnico=request.user)
+
+
+def _salvar_respostas_checklist(request, os, template):
+    for item in template.itens.all():
+        defaults = {"observacao": request.POST.get(f"obs_{item.id}", "").strip()}
+        if item.tipo_campo == TipoCampo.CAIXA_SELECAO:
+            defaults["marcado"] = request.POST.get(f"item_{item.id}") == "on"
+        elif item.tipo_campo == TipoCampo.TEXTO:
+            defaults["texto"] = request.POST.get(f"item_{item.id}", "").strip()
+        elif item.tipo_campo == TipoCampo.FOTO:
+            arquivo = request.FILES.get(f"item_{item.id}")
+            if arquivo:
+                defaults["foto"] = arquivo
+        OsChecklistResposta.objects.update_or_create(os=os, item=item, defaults=defaults)
 
 
 @tecnico_required
@@ -48,17 +63,7 @@ def detalhe_os(request, pk):
         if acao == "salvar_checklist":
             template = os.get_checklist_template()
             if template:
-                for item in template.itens.all():
-                    defaults = {"observacao": request.POST.get(f"obs_{item.id}", "").strip()}
-                    if item.tipo_campo == TipoCampo.CAIXA_SELECAO:
-                        defaults["marcado"] = request.POST.get(f"item_{item.id}") == "on"
-                    elif item.tipo_campo == TipoCampo.TEXTO:
-                        defaults["texto"] = request.POST.get(f"item_{item.id}", "").strip()
-                    elif item.tipo_campo == TipoCampo.FOTO:
-                        arquivo = request.FILES.get(f"item_{item.id}")
-                        if arquivo:
-                            defaults["foto"] = arquivo
-                    OsChecklistResposta.objects.update_or_create(os=os, item=item, defaults=defaults)
+                _salvar_respostas_checklist(request, os, template)
             if os.status == StatusOS.ABERTA:
                 os.status = StatusOS.EM_ANDAMENTO
                 os.save(update_fields=["status"])
@@ -160,6 +165,9 @@ def detalhe_os(request, pk):
 
         if acao == "dar_baixa":
             template = os.get_checklist_template()
+            if template:
+                _salvar_respostas_checklist(request, os, template)
+
             pendentes = []
             if template:
                 respostas = {r.item_id: r for r in os.respostas_checklist.all()}
