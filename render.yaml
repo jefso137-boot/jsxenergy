@@ -2,7 +2,7 @@ services:
   - type: web
     name: jsxenergy-erp
     env: python
-    plan: free
+    plan: starter
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py bootstrap_admin"
     startCommand: "gunicorn jsxenergy_erp.wsgi:application"
     envVars:
@@ -39,4 +39,4 @@ services:
 
 databases:
   - name: jsxenergy-db
-    plan: free
+    plan: starter
