@@ -8,4 +8,6 @@ urlpatterns = [
     path("lider/minhas-os/", views_lider.minhas_os, name="lider_minhas_os"),
     path("lider/os/nova/", views_lider.criar_os, name="lider_criar_os"),
     path("lider/os/<int:pk>/", views_lider.detalhe_os, name="lider_detalhe_os"),
+    path("lider/os/<int:pk>/editar/", views_lider.editar_os, name="lider_editar_os"),
+    path("lider/os/<int:pk>/excluir/", views_lider.excluir_os, name="lider_excluir_os"),
 ]
