@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Editar OS #{{ os.pk }} — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{% url 'lider_detalhe_os' os.pk %}" class="text-sm text-gray-500">&larr; OS #{{ os.pk }}</a>
+
+<h1 class="text-lg font-extrabold text-navy mt-2 mb-4">Editar ordem de serviço</h1>
+
+<form method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow p-4 space-y-4">
+    {% csrf_token %}
+    <div>
+        <label class="block text-sm font-medium mb-1">Cliente</label>
+        {% render_field form.cliente class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.cliente.errors %}<p class="text-xs text-red-600 mt-1">{{ form.cliente.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Tipo de OS</label>
+        {% render_field form.tipo id="id_tipo" class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.tipo.errors %}<p class="text-xs text-red-600 mt-1">{{ form.tipo.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Técnico responsável</label>
+        {% render_field form.tecnico class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.tecnico.errors %}<p class="text-xs text-red-600 mt-1">{{ form.tecnico.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Data agendada</label>
+        {% render_field form.data_agendada class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% if form.data_agendada.errors %}<p class="text-xs text-red-600 mt-1">{{ form.data_agendada.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-1">Observações (opcional)</label>
+        {% render_field form.observacoes class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+    </div>
+    <div id="anexos-instalacao" class="space-y-4 {% if os.tipo != 'INSTALACAO' %}hidden{% endif %}">
+        <div>
+            <label class="block text-sm font-medium mb-1">Projeto (PDF, opcional)</label>
+            {% if os.documento_pdf_1 %}<p class="text-xs text-gray-500 mb-1">Atual: <a href="{{ os.documento_pdf_1.url }}" target="_blank" class="text-orange underline">ver arquivo</a></p>{% endif %}
+            {% render_field form.documento_pdf_1 class="w-full text-sm" %}
+            {% if form.documento_pdf_1.errors %}<p class="text-xs text-red-600 mt-1">{{ form.documento_pdf_1.errors|join:", " }}</p>{% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1">Vistoria (PDF, opcional)</label>
+            {% if os.documento_pdf_2 %}<p class="text-xs text-gray-500 mb-1">Atual: <a href="{{ os.documento_pdf_2.url }}" target="_blank" class="text-orange underline">ver arquivo</a></p>{% endif %}
+            {% render_field form.documento_pdf_2 class="w-full text-sm" %}
+            {% if form.documento_pdf_2.errors %}<p class="text-xs text-red-600 mt-1">{{ form.documento_pdf_2.errors|join:", " }}</p>{% endif %}
+        </div>
+    </div>
+    <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
+        Salvar alterações
+    </button>
+</form>
+
+<script>
+(function () {
+    var tipoSelect = document.getElementById('id_tipo');
+    var anexos = document.getElementById('anexos-instalacao');
+    if (!tipoSelect || !anexos) return;
+
+    function atualizar() {
+        anexos.classList.toggle('hidden', tipoSelect.value !== 'INSTALACAO');
+    }
+
+    tipoSelect.addEventListener('change', atualizar);
+    atualizar();
+})();
+</script>
+
+{% endblock %}

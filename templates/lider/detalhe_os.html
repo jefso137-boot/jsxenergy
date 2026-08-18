@@ -11,6 +11,21 @@
 {% endif %}
 <p class="text-xs text-gray-400 mb-1">Agendada para {{ os.data_agendada|date:"d/m/Y" }}</p>
 
+<div class="flex gap-2 mb-4">
+    <a href="{% url 'lider_editar_os' os.pk %}"
+       class="flex-1 text-center text-sm font-bold text-navy bg-white border border-gray-300 rounded-lg py-2.5">
+        Editar
+    </a>
+    <form method="post" action="{% url 'lider_excluir_os' os.pk %}" class="flex-1"
+          onsubmit="return confirm('Tem certeza que deseja excluir esta OS? Essa ação não pode ser desfeita.');">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full text-sm font-bold text-red-600 bg-white border border-red-200 rounded-lg py-2.5">
+            Excluir
+        </button>
+    </form>
+</div>
+
 {% if os.cliente.link_localizacao or os.documento_pdf_1 or os.documento_pdf_2 %}
 <div class="flex flex-wrap gap-2 mb-4">
     {% if os.cliente.link_localizacao %}

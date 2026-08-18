@@ -73,3 +73,31 @@ def detalhe_os(request, pk):
         "valor_custos_extras_os": sum((uso.subtotal() for uso in custos_extras_usados), start=0),
     }
     return render(request, "lider/detalhe_os.html", context)
+
+
+@lider_required
+def editar_os(request, pk):
+    os = get_object_or_404(OrdemServico, pk=pk, criado_por=request.user)
+    if request.method == "POST":
+        form = OsCriarForm(request.POST, request.FILES, instance=os, user=request.user)
+        if form.is_valid():
+            os = form.save(commit=False)
+            if os.tipo != "INSTALACAO":
+                os.documento_pdf_1 = None
+                os.documento_pdf_2 = None
+            os.save()
+            messages.success(request, "OS atualizada.")
+            return redirect("lider_detalhe_os", pk=os.pk)
+    else:
+        form = OsCriarForm(instance=os, user=request.user)
+    return render(request, "lider/editar_os.html", {"form": form, "os": os})
+
+
+@lider_required
+def excluir_os(request, pk):
+    os = get_object_or_404(OrdemServico, pk=pk, criado_por=request.user)
+    if request.method != "POST":
+        return redirect("lider_detalhe_os", pk=os.pk)
+    os.delete()
+    messages.success(request, "OS excluída.")
+    return redirect("lider_minhas_os")
