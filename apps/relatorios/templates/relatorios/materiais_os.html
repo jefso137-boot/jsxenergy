@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>Materiais e custos — OS #{{ os.pk }} — {{ cliente_nome }}</title>
+<style>
+    @page {
+        size: A4;
+        margin: 50px 55px;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #3D4759;
+        font-size: 13px;
+    }
+
+    .topo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    .topo .logo { height: 90px; }
+    .topo .logo img, .topo .logo svg { height: 100%; display: block; }
+    h1.titulo {
+        text-align: center;
+        color: #333F4F;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin: 0 0 6px 0;
+    }
+    .orange-rule {
+        width: 90px;
+        height: 4px;
+        background: #F5821F;
+        margin: 0 auto 24px auto;
+    }
+
+    .cabecalho {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    .cabecalho .empresa {
+        font-size: 12.5px;
+        line-height: 1.9;
+        color: #3D4759;
+    }
+    .cabecalho .empresa .nome {
+        font-weight: 800;
+        color: #333F4F;
+        font-size: 13.5px;
+    }
+    .cabecalho .info-os {
+        text-align: right;
+        font-size: 12.5px;
+        line-height: 1.9;
+    }
+    .cabecalho .info-os strong { color: #333F4F; }
+
+    table.itens {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 4px;
+    }
+    table.itens th {
+        background: #333F4F;
+        color: #FFFFFF;
+        font-size: 12px;
+        text-transform: uppercase;
+        padding: 9px 10px;
+        text-align: left;
+    }
+    table.itens th.num, table.itens td.num { text-align: right; }
+    table.itens td {
+        border: 1px solid #C9CFD8;
+        padding: 8px 10px;
+        font-size: 12.5px;
+    }
+    table.itens tr.total td {
+        background: #F2F3F5;
+        font-weight: 800;
+        color: #333F4F;
+    }
+
+    .preco-final {
+        width: 260px;
+        margin-left: auto;
+        margin-top: 26px;
+        border-collapse: collapse;
+    }
+    .preco-final td {
+        border: 1px solid #C9CFD8;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    .preco-final td.rotulo {
+        background: #F2F3F5;
+        font-weight: 800;
+        color: #333F4F;
+    }
+    .preco-final td.valor {
+        text-align: right;
+        font-weight: 800;
+        color: #F5821F;
+    }
+</style>
+</head>
+<body>
+
+    <div class="topo">
+        <div class="logo">
+            {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" alt="JSX Energy">
+            {% else %}
+            {% include "relatorios/_logo_svg.html" %}
+            {% endif %}
+        </div>
+    </div>
+    <h1 class="titulo">MATERIAIS E CUSTOS UTILIZADOS</h1>
+    <div class="orange-rule"></div>
+
+    <div class="cabecalho">
+        <div class="empresa">
+            <div class="nome">JSX ENERGY</div>
+            <div>CLIENTE: {{ cliente_nome }}</div>
+            <div>TIPO DE OS: {{ os.get_tipo_display }}</div>
+        </div>
+        <div class="info-os">
+            <div><strong>OS Nº</strong> {{ os.pk }}</div>
+            <div><strong>CONCLUÍDA EM:</strong> {{ data_conclusao|default:"—" }}</div>
+        </div>
+    </div>
+
+    <table class="itens">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="num">Preço</th>
+                <th class="num">Quantidade</th>
+                <th class="num">Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in itens %}
+            <tr>
+                <td>{{ item.nome }}</td>
+                <td class="num">{% if item.preco is not None %}R$ {{ item.preco|floatformat:2 }}{% endif %}</td>
+                <td class="num">{{ item.quantidade }}</td>
+                <td class="num">R$ {{ item.valor|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Nenhum material ou custo extra registrado nesta OS.</td>
+            </tr>
+            {% endfor %}
+            <tr class="total">
+                <td colspan="3">TOTAL</td>
+                <td class="num">R$ {{ total|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="preco-final">
+        <tr>
+            <td class="rotulo">VALOR TOTAL</td>
+            <td class="valor">R$ {{ total|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+</body>
+</html>

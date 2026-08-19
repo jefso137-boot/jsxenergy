@@ -2,12 +2,13 @@ import logging
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.checklists.models import TipoCampo
 from apps.financas.models import CustoExtraCatalogo, MaterialCatalogo
-from apps.relatorios.pdf import gerar_pdf_os
+from apps.relatorios.pdf import gerar_materiais_pdf_bytes, gerar_pdf_os
 
 from .decorators import tecnico_required
 from .forms import OsNarrativaForm
@@ -51,6 +52,20 @@ def _salvar_respostas_checklist(request, os, template):
             if arquivo:
                 defaults["foto"] = arquivo
         OsChecklistResposta.objects.update_or_create(os=os, item=item, defaults=defaults)
+
+
+@tecnico_required
+def pdf_materiais(request, pk):
+    os = _get_os_do_tecnico(request, pk)
+    if os.status != StatusOS.CONCLUIDA:
+        messages.error(request, "Só é possível ver o PDF de materiais de uma OS concluída.")
+        return redirect("tecnico_detalhe_os", pk=os.pk)
+
+    pdf_bytes = gerar_materiais_pdf_bytes(os)
+    nome_arquivo = f"Materiais-OS-{os.pk}-{os.cliente.nome}".replace(" ", "_")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{nome_arquivo}.pdf"'
+    return response
 
 
 @tecnico_required

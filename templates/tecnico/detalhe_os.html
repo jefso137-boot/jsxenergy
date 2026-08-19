@@ -52,6 +52,12 @@
     </button>
 </form>
 {% endif %}
+{% if os.tipo == "INSTALACAO" %}
+<a href="{% url 'tecnico_os_pdf_materiais' os.pk %}" target="_blank"
+   class="block text-center bg-white border border-gray-300 text-navy font-bold rounded-lg py-3 mb-4">
+    Ver PDF de materiais e custos utilizados
+</a>
+{% endif %}
 {% endif %}
 
 <!-- ===================== CHECKLIST ===================== -->

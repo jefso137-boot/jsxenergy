@@ -144,6 +144,61 @@ def gerar_pdf_os(ordem_servico):
     return ordem_servico.pdf_file
 
 
+def montar_contexto_materiais(ordem_servico):
+    materiais = ordem_servico.materiais_usados.select_related("material").all()
+    custos_extras = ordem_servico.custos_extras.select_related("custo").all()
+
+    itens = []
+    for uso in materiais:
+        itens.append(
+            {
+                "nome": uso.material.nome,
+                "preco": uso.material.valor,
+                "quantidade": uso.quantidade,
+                "valor": uso.subtotal(),
+            }
+        )
+    for uso in custos_extras:
+        # Custo por m² ou com valor manual não tem um "preço unitário" simples
+        # de mostrar (a conta não é quantidade x preço) - nesses casos só o
+        # valor final aparece na coluna de valor.
+        preco_unitario = None
+        if uso.valor_manual is None and not uso.custo.area_por_placa:
+            preco_unitario = uso.custo.valor
+        itens.append(
+            {
+                "nome": uso.custo.nome,
+                "preco": preco_unitario,
+                "quantidade": uso.quantidade,
+                "valor": uso.subtotal(),
+            }
+        )
+
+    total = sum((item["valor"] for item in itens), start=0)
+
+    return {
+        "os": ordem_servico,
+        "cliente_nome": ordem_servico.cliente.nome,
+        "data_conclusao": (
+            timezone.localtime(ordem_servico.data_conclusao).strftime("%d/%m/%Y")
+            if ordem_servico.data_conclusao
+            else ""
+        ),
+        "itens": itens,
+        "total": total,
+        "logo_data_uri": _logo_data_uri(),
+    }
+
+
+def gerar_materiais_pdf_bytes(ordem_servico):
+    """Gera (sem persistir em disco) o PDF com a lista de materiais e custos
+    extras usados na OS, com os respectivos valores - útil quando o admin
+    precisa conferir o que foi lançado numa baixa."""
+    contexto = montar_contexto_materiais(ordem_servico)
+    html_string = render_to_string("relatorios/materiais_os.html", contexto)
+    return HTML(string=html_string).write_pdf()
+
+
 def os_referencia_recibo(cliente):
     """A OS de instalação concluída mais recente do cliente - fonte da data e da
     descrição do serviço que aparecem no recibo."""

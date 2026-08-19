@@ -1,9 +1,10 @@
 import logging
 
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from apps.relatorios.pdf import gerar_pdf_os
+from apps.relatorios.pdf import gerar_materiais_pdf_bytes, gerar_pdf_os
 
 from .decorators import lider_required
 from .forms import OsCriarForm
@@ -73,6 +74,20 @@ def detalhe_os(request, pk):
         "valor_custos_extras_os": sum((uso.subtotal() for uso in custos_extras_usados), start=0),
     }
     return render(request, "lider/detalhe_os.html", context)
+
+
+@lider_required
+def pdf_materiais(request, pk):
+    os = get_object_or_404(OrdemServico, pk=pk, criado_por=request.user)
+    if os.status != StatusOS.CONCLUIDA:
+        messages.error(request, "Só é possível ver o PDF de materiais de uma OS concluída.")
+        return redirect("lider_detalhe_os", pk=os.pk)
+
+    pdf_bytes = gerar_materiais_pdf_bytes(os)
+    nome_arquivo = f"Materiais-OS-{os.pk}-{os.cliente.nome}".replace(" ", "_")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{nome_arquivo}.pdf"'
+    return response
 
 
 @lider_required

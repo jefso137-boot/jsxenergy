@@ -4,10 +4,14 @@ from .models import OrdemServico, OsChecklistResposta, OsCustoExtraUso, OsMateri
 
 
 class OsMaterialUsoInline(admin.TabularInline):
+    """Permite excluir um item lançado errado (ex.: técnico deu baixa na OS
+    errada) sem precisar excluir a OS inteira. Os valores continuam somente
+    leitura - só a exclusão da linha é permitida."""
+
     model = OsMaterialUso
     extra = 0
     fields = ("material", "quantidade")
-    can_delete = False
+    can_delete = True
     verbose_name_plural = "Materiais usados (registrados pelo técnico)"
 
     def has_add_permission(self, request, obj=None):
@@ -18,11 +22,15 @@ class OsMaterialUsoInline(admin.TabularInline):
 
 
 class OsCustoExtraUsoInline(admin.TabularInline):
+    """Permite excluir um item lançado errado (ex.: técnico deu baixa na OS
+    errada) sem precisar excluir a OS inteira. Os valores continuam somente
+    leitura - só a exclusão da linha é permitida."""
+
     model = OsCustoExtraUso
     extra = 0
     fields = ("custo", "quantidade", "marcado", "texto", "qtd_fotos", "valor_manual")
     readonly_fields = ("custo", "quantidade", "marcado", "texto", "qtd_fotos")
-    can_delete = False
+    can_delete = True
     verbose_name_plural = "Custos extras usados (registrados pelo técnico)"
 
     def has_add_permission(self, request, obj=None):

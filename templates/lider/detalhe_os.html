@@ -64,6 +64,12 @@
     </button>
 </form>
 {% endif %}
+{% if os.tipo == "INSTALACAO" %}
+<a href="{% url 'lider_os_pdf_materiais' os.pk %}" target="_blank"
+   class="block text-center bg-white border border-gray-300 text-navy font-bold rounded-lg py-3 mb-4">
+    Ver PDF de materiais e custos utilizados
+</a>
+{% endif %}
 {% elif os.status == "EM_ANDAMENTO" %}
 <span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange mb-4">Em andamento</span>
 {% else %}
