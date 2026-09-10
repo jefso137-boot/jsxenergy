@@ -138,6 +138,12 @@ def medicao(request):
     for (inicio, fim), linhas in sorted(grupos.items(), key=lambda item: item[0][0], reverse=True):
         fechamento_obj, _ = FechamentoMedicao.objects.get_or_create(lider=request.user, inicio=inicio, fim=fim)
         valor_semana = sum((l["valor"] for l in linhas), start=0)
+        # Só atualiza o valor esperado enquanto o fechamento ainda não foi pago -
+        # depois de pago, o valor fica congelado pra continuar servindo de
+        # referência caso apareça uma OS lançada/movida pra essa semana depois.
+        if not fechamento_obj.pago and fechamento_obj.valor_esperado != valor_semana:
+            fechamento_obj.valor_esperado = valor_semana
+            fechamento_obj.save(update_fields=["valor_esperado"])
         fechamentos.append(
             {
                 "inicio": inicio,

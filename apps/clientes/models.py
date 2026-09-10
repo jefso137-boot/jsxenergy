@@ -76,6 +76,20 @@ class FechamentoMedicao(models.Model):
     fim = models.DateField("Fim da semana")
     pago = models.BooleanField("Pago", default=False)
     data_pagamento = models.DateTimeField("Pago em", null=True, blank=True)
+    valor_esperado = models.DecimalField(
+        "Valor esperado", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Calculado automaticamente pela tela de Medição do líder. Só é atualizado "
+        "enquanto o fechamento ainda não foi marcado como pago.",
+    )
+    valor_pago = models.DecimalField(
+        "Valor pago", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Preencha com o valor que realmente foi transferido ao líder nesse fechamento.",
+    )
+    observacao_divergencia = models.TextField(
+        "Observação sobre divergência", blank=True,
+        help_text="Anote aqui o que foi apurado quando o valor pago não bater com o esperado "
+        "(ex.: OS que entrou na semana errada, pagamento duplicado, etc.).",
+    )
 
     class Meta:
         verbose_name = "Fechamento de medição"
@@ -85,3 +99,14 @@ class FechamentoMedicao(models.Model):
 
     def __str__(self):
         return f"{self.lider} — {self.inicio:%d/%m} a {self.fim:%d/%m}"
+
+    @property
+    def diferenca(self):
+        if self.valor_pago is None or self.valor_esperado is None:
+            return None
+        return self.valor_pago - self.valor_esperado
+
+    @property
+    def tem_divergencia(self):
+        diferenca = self.diferenca
+        return diferenca is not None and diferenca != 0
