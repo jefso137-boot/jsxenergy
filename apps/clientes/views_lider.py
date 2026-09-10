@@ -134,44 +134,84 @@ def medicao(request):
         grupos[periodo].append({"cliente": cliente, "os": os, "descricao": "Instalação", "valor": valor_os})
 
     hoje = timezone.localdate()
+    periodo_atual = periodo_fechamento(hoje)
+
     fechamentos = []
-    for (inicio, fim), linhas in sorted(grupos.items(), key=lambda item: item[0][0], reverse=True):
-        fechamento_obj, _ = FechamentoMedicao.objects.get_or_create(lider=request.user, inicio=inicio, fim=fim)
-        valor_semana = sum((l["valor"] for l in linhas), start=0)
-        # Só atualiza o valor esperado enquanto o fechamento ainda não foi pago -
-        # depois de pago, o valor fica congelado pra continuar servindo de
-        # referência caso apareça uma OS lançada/movida pra essa semana depois.
-        if not fechamento_obj.pago and fechamento_obj.valor_esperado != valor_semana:
-            fechamento_obj.valor_esperado = valor_semana
-            fechamento_obj.save(update_fields=["valor_esperado"])
-        fechamentos.append(
-            {
-                "inicio": inicio,
-                "fim": fim,
-                "recebimento": fim + datetime.timedelta(days=1),
-                "aberto": hoje <= fim,
-                "pago": fechamento_obj.pago,
-                "data_pagamento": fechamento_obj.data_pagamento,
-                "valor_pago": fechamento_obj.valor_pago,
-                "valor_pendente_fechamento": fechamento_obj.valor_pendente,
-                "tem_divergencia": fechamento_obj.tem_divergencia,
-                "comprovante_pagamento": fechamento_obj.comprovante_pagamento,
-                # Observação só aparece pro líder enquanto o pagamento está
-                # parcial - depois de completar, ela some da tela dele
-                # (continua visível pro admin no /admin).
-                "observacao_divergencia": (
-                    fechamento_obj.observacao_divergencia
-                    if not fechamento_obj.pago and fechamento_obj.valor_pago is not None
-                    else ""
-                ),
-                "linhas": linhas,
-                "valor_semana": valor_semana,
-            }
-        )
+    if grupos:
+        ultimo_inicio_com_os = max(periodo[0] for periodo in grupos.keys())
+        cursor = min(periodo[0] for periodo in grupos.keys())
+        saldo_anterior = 0
+
+        while True:
+            inicio, fim = periodo_fechamento(cursor)
+            linhas = grupos.get((inicio, fim), [])
+            fechamento_obj, _ = FechamentoMedicao.objects.get_or_create(lider=request.user, inicio=inicio, fim=fim)
+            valor_semana = sum((l["valor"] for l in linhas), start=0)
+            valor_esperado_total = valor_semana + saldo_anterior
+
+            # Só atualiza enquanto o fechamento ainda não foi pago - depois de
+            # pago, os valores ficam congelados pra continuar servindo de
+            # referência caso apareça uma OS lançada/movida pra essa semana depois.
+            if not fechamento_obj.pago and (
+                fechamento_obj.valor_esperado != valor_esperado_total
+                or fechamento_obj.valor_repasse_recebido != saldo_anterior
+            ):
+                fechamento_obj.valor_esperado = valor_esperado_total
+                fechamento_obj.valor_repasse_recebido = saldo_anterior
+                fechamento_obj.save(update_fields=["valor_esperado", "valor_repasse_recebido"])
+
+            # O que ficar pendente aqui (quando "repassar_pendente" estiver
+            # ligado) entra automaticamente no valor esperado da semana
+            # seguinte, montada na próxima volta deste loop.
+            pendente_efetivo = fechamento_obj.valor_pendente_efetivo
+            pago_parcialmente = fechamento_obj.valor_pago is not None and not fechamento_obj.pago
+            repassa = bool(pago_parcialmente and fechamento_obj.repassar_pendente and pendente_efetivo)
+            saldo_para_proxima = pendente_efetivo if repassa else 0
+
+            fechamentos.append(
+                {
+                    "inicio": inicio,
+                    "fim": fim,
+                    "recebimento": fim + datetime.timedelta(days=1),
+                    "aberto": hoje <= fim,
+                    "pago": fechamento_obj.pago,
+                    "data_pagamento": fechamento_obj.data_pagamento,
+                    "valor_pago": fechamento_obj.valor_pago,
+                    "valor_pendente_fechamento": fechamento_obj.valor_pendente,
+                    "valor_repasse_recebido": fechamento_obj.valor_repasse_recebido,
+                    "repassar_pendente": fechamento_obj.repassar_pendente,
+                    "tem_divergencia": fechamento_obj.tem_divergencia,
+                    "comprovante_pagamento": fechamento_obj.comprovante_pagamento,
+                    # Observação só aparece pro líder enquanto o pagamento está
+                    # parcial - depois de completar, ela some da tela dele
+                    # (continua visível pro admin no /admin).
+                    "observacao_divergencia": (
+                        fechamento_obj.observacao_divergencia if pago_parcialmente else ""
+                    ),
+                    "linhas": linhas,
+                    "valor_semana": valor_semana,
+                    "valor_esperado_total": fechamento_obj.valor_esperado,
+                }
+            )
+
+            # Nunca passa da semana atual. Depois da última semana com OS,
+            # só continua criando semanas (vazias) se ainda tiver saldo pra
+            # repassar - sem isso, toda semana sem OS apareceria em branco.
+            if fim >= periodo_atual[1]:
+                break
+            if inicio >= ultimo_inicio_com_os and not saldo_para_proxima:
+                break
+
+            saldo_anterior = saldo_para_proxima
+            cursor = fim + datetime.timedelta(days=1)
+
+    fechamentos.reverse()  # semana mais recente primeiro, como antes
 
     context = {
         "fechamentos": fechamentos,
-        "valor_pendente": sum((f["valor_semana"] for f in fechamentos if not f["pago"]), start=0),
+        "valor_pendente": sum(
+            (f["valor_esperado_total"] or 0 for f in fechamentos if not f["pago"]), start=0
+        ),
         "qtd_pago": sum(1 for f in fechamentos if f["pago"]),
     }
     return render(request, "lider/medicao.html", context)

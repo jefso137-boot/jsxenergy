@@ -68,7 +68,10 @@ class FechamentoMedicao(models.Model):
     Criado automaticamente quando a semana aparece na tela de Medição. O admin
     sobe o comprovante e digita o valor pago; o sistema compara com o valor
     esperado e marca como pago automaticamente quando bate (ou passa), senão
-    mostra o valor pendente - ver save()."""
+    mostra o valor pendente - ver save(). Se ficar pago parcialmente e
+    `repassar_pendente` estiver ligado, o valor que falta entra automaticamente
+    no valor esperado da semana seguinte desse líder - ver
+    apps/clientes/views_lider.py:medicao()."""
 
     lider = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -82,8 +85,25 @@ class FechamentoMedicao(models.Model):
     data_pagamento = models.DateTimeField("Pago em", null=True, blank=True)
     valor_esperado = models.DecimalField(
         "Valor esperado", max_digits=10, decimal_places=2, null=True, blank=True,
-        help_text="Calculado automaticamente pela tela de Medição do líder. Só é atualizado "
-        "enquanto o fechamento ainda não foi marcado como pago.",
+        help_text="Calculado automaticamente pela tela de Medição do líder (já inclui o valor "
+        "repassado da semana anterior, se houver). Só é atualizado enquanto o fechamento ainda "
+        "não foi marcado como pago.",
+    )
+    valor_repasse_recebido = models.DecimalField(
+        "Valor repassado da semana anterior", max_digits=10, decimal_places=2, default=0, blank=True,
+        help_text="Preenchido automaticamente quando a semana anterior desse líder ficou paga "
+        "parcialmente e o repasse pra próxima semana está ligado. Já está somado no valor esperado.",
+    )
+    repassar_pendente = models.BooleanField(
+        "Repassar valor pendente pra próxima semana", default=True,
+        help_text="Se ficar pago parcialmente, o valor que faltar entra automaticamente no valor "
+        "esperado da semana seguinte. Desligue se for resolver essa diferença de outra forma.",
+    )
+    valor_pendente_ajustado = models.DecimalField(
+        "Valor pendente (ajuste manual)", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Preencha só para sobrescrever o valor pendente calculado automaticamente "
+        "(esperado − pago) - por exemplo, pra perdoar parte da diferença. É esse valor (quando "
+        "preenchido) que é repassado pra próxima semana.",
     )
     valor_pago = models.DecimalField(
         "Valor pago", max_digits=10, decimal_places=2, null=True, blank=True,
@@ -139,3 +159,11 @@ class FechamentoMedicao(models.Model):
             return None
         pendente = self.valor_esperado - self.valor_pago
         return pendente if pendente > 0 else 0
+
+    @property
+    def valor_pendente_efetivo(self):
+        """Valor pendente considerando o ajuste manual do admin, quando houver -
+        é esse valor que a tela de Medição repassa pra próxima semana."""
+        if self.valor_pendente_ajustado is not None:
+            return self.valor_pendente_ajustado
+        return self.valor_pendente

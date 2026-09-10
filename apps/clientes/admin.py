@@ -38,20 +38,24 @@ class ClienteAdmin(admin.ModelAdmin):
 @admin.register(FechamentoMedicao)
 class FechamentoMedicaoAdmin(admin.ModelAdmin):
     list_display = (
-        "lider", "inicio", "fim", "valor_esperado", "valor_pago", "valor_pendente_display",
-        "diferenca_display", "pago", "data_pagamento",
+        "lider", "inicio", "fim", "valor_repasse_recebido", "valor_esperado", "valor_pago",
+        "valor_pendente_display", "repassar_pendente", "diferenca_display", "pago", "data_pagamento",
     )
-    list_filter = ("pago", "lider", DivergenciaFilter)
+    list_filter = ("pago", "lider", "repassar_pendente", DivergenciaFilter)
     fields = (
-        "lider", "inicio", "fim", "valor_esperado", "comprovante_pagamento", "valor_pago",
-        "valor_pendente_display", "diferenca_display", "observacao_divergencia", "pago", "data_pagamento",
+        "lider", "inicio", "fim", "valor_repasse_recebido", "valor_esperado", "comprovante_pagamento",
+        "valor_pago", "valor_pendente_display", "valor_pendente_ajustado", "repassar_pendente",
+        "diferenca_display", "observacao_divergencia", "pago", "data_pagamento",
     )
 
     def has_add_permission(self, request):
         return False
 
     def get_readonly_fields(self, request, obj=None):
-        readonly = ["lider", "inicio", "fim", "valor_esperado", "valor_pendente_display", "diferenca_display"]
+        readonly = [
+            "lider", "inicio", "fim", "valor_repasse_recebido", "valor_esperado",
+            "valor_pendente_display", "diferenca_display",
+        ]
         # Uma vez que o valor pago é informado, ele passa a mandar (ver
         # FechamentoMedicao.save()) - o checkbox/data manuais deixam de ter
         # efeito, então ficam só como exibição pra não confundir.
@@ -71,12 +75,19 @@ class FechamentoMedicaoAdmin(admin.ModelAdmin):
     diferenca_display.short_description = "Diferença (pago - esperado)"
 
     def valor_pendente_display(self, obj):
-        pendente = obj.valor_pendente
+        pendente = obj.valor_pendente_efetivo
         if pendente is None:
             return "—"
         if pendente == 0:
             return "Nada pendente"
-        return f"R$ {pendente} pendente"
+        rotulo = f"R$ {pendente} pendente"
+        if obj.valor_pendente_ajustado is not None:
+            rotulo += " (ajustado manualmente)"
+        elif obj.repassar_pendente:
+            rotulo += " - vai pra próxima semana"
+        else:
+            rotulo += " - repasse desligado"
+        return rotulo
 
     valor_pendente_display.short_description = "Valor pendente"
 

@@ -42,6 +42,10 @@
         {% endif %}
     </div>
 
+    {% if fechamento.valor_repasse_recebido %}
+    <p class="text-xs text-orange mb-2">Inclui R$ {{ fechamento.valor_repasse_recebido|floatformat:2 }} pendente da semana anterior.</p>
+    {% endif %}
+
     {% if fechamento.valor_pago is not None %}
     <div class="bg-white rounded-xl shadow p-4 mb-3">
         <div class="flex justify-between text-sm mb-1">
@@ -64,6 +68,9 @@
     {% endif %}
 
     <div class="space-y-3">
+        {% if not fechamento.linhas and fechamento.valor_repasse_recebido %}
+        <p class="text-sm text-gray-500">Nenhuma OS concluída nessa semana - o valor acima é só o repasse pendente.</p>
+        {% endif %}
         {% for linha in fechamento.linhas %}
         <div class="bg-white rounded-xl shadow p-4">
             <a href="{% url 'lider_cliente_detalhe' linha.cliente.pk %}" class="block font-bold text-navy mb-1">{{ linha.cliente.nome }}</a>
