@@ -156,6 +156,14 @@ def medicao(request):
                 "valor_pendente_fechamento": fechamento_obj.valor_pendente,
                 "tem_divergencia": fechamento_obj.tem_divergencia,
                 "comprovante_pagamento": fechamento_obj.comprovante_pagamento,
+                # Observação só aparece pro líder enquanto o pagamento está
+                # parcial - depois de completar, ela some da tela dele
+                # (continua visível pro admin no /admin).
+                "observacao_divergencia": (
+                    fechamento_obj.observacao_divergencia
+                    if not fechamento_obj.pago and fechamento_obj.valor_pago is not None
+                    else ""
+                ),
                 "linhas": linhas,
                 "valor_semana": valor_semana,
             }
