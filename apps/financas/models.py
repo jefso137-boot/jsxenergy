@@ -47,6 +47,12 @@ class MaterialCatalogo(models.Model):
         return self.nome
 
 
+class AplicavelEm(models.TextChoices):
+    INSTALACAO = "INSTALACAO", "Somente instalação"
+    VISTORIA = "VISTORIA", "Somente vistoria"
+    AMBOS = "AMBOS", "Instalação e vistoria"
+
+
 class CustoExtraCatalogo(models.Model):
     nome = models.CharField("Serviço / custo extra", max_length=150)
     valor = models.DecimalField("Valor", max_digits=10, decimal_places=2, default=0)
@@ -66,6 +72,13 @@ class CustoExtraCatalogo(models.Model):
         choices=TipoCampo.choices,
         default=TipoCampo.FOTO,
     )
+    aplicavel_em = models.CharField(
+        "Aplicável em",
+        max_length=12,
+        choices=AplicavelEm.choices,
+        default=AplicavelEm.INSTALACAO,
+        help_text="Em qual tipo de OS o técnico pode lançar esse custo extra.",
+    )
     ativo = models.BooleanField("Ativo", default=True)
     criado_em = models.DateTimeField("Criado em", auto_now_add=True)
 
@@ -76,3 +89,6 @@ class CustoExtraCatalogo(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def aplica_a(self, tipo_os):
+        return self.aplicavel_em == AplicavelEm.AMBOS or self.aplicavel_em == tipo_os

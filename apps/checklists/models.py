@@ -22,6 +22,7 @@ class TipoCampo(models.TextChoices):
     CAIXA_SELECAO = "CAIXA_SELECAO", "Caixa de seleção (sim/não)"
     TEXTO = "TEXTO", "Texto"
     FOTO = "FOTO", "Foto"
+    ARQUIVO_PDF = "ARQUIVO_PDF", "Arquivo (PDF)"
 
 
 class ChecklistItem(models.Model):

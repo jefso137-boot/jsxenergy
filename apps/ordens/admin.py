@@ -28,7 +28,7 @@ class OsCustoExtraUsoInline(admin.TabularInline):
 
     model = OsCustoExtraUso
     extra = 0
-    fields = ("custo", "quantidade", "marcado", "texto", "qtd_fotos", "valor_manual")
+    fields = ("custo", "quantidade", "marcado", "texto", "qtd_fotos", "arquivo_pdf", "valor_manual")
     readonly_fields = ("custo", "quantidade", "marcado", "texto", "qtd_fotos")
     can_delete = True
     verbose_name_plural = "Custos extras usados (registrados pelo técnico)"
@@ -89,11 +89,9 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     def get_inlines(self, request, obj):
         if obj is None:
             return []
-        inlines = [OsChecklistRespostaInline]
-        if obj.tipo == "INSTALACAO":
-            inlines.append(OsCustoExtraUsoInline)
-            if obj.cliente.precisa_material_ca:
-                inlines.append(OsMaterialUsoInline)
+        inlines = [OsChecklistRespostaInline, OsCustoExtraUsoInline]
+        if obj.tipo == "INSTALACAO" and obj.cliente.precisa_material_ca:
+            inlines.append(OsMaterialUsoInline)
         return inlines
 
     def save_model(self, request, obj, form, change):

@@ -64,12 +64,10 @@
     </button>
 </form>
 {% endif %}
-{% if os.tipo == "INSTALACAO" %}
 <a href="{% url 'lider_os_pdf_materiais' os.pk %}" target="_blank"
    class="block text-center bg-white border border-gray-300 text-navy font-bold rounded-lg py-3 mb-4">
     Ver PDF de materiais e custos utilizados
 </a>
-{% endif %}
 {% elif os.status == "EM_ANDAMENTO" %}
 <span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange mb-4">Em andamento</span>
 {% else %}
@@ -124,14 +122,18 @@
 </section>
 {% endif %}
 
-{% if os.tipo == "INSTALACAO" %}
 <section class="bg-white rounded-xl shadow p-4 mb-4">
     <h2 class="font-bold text-navy mb-3">Custos extras</h2>
     {% if custos_extras_usados %}
     <div class="space-y-2">
         {% for uso in custos_extras_usados %}
-        <div class="flex justify-between text-sm border-b border-gray-100 pb-2">
-            <span>{{ uso.quantidade }}x {{ uso.custo.nome }}</span>
+        <div class="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+            <span>
+                {{ uso.quantidade }}x {{ uso.custo.nome }}
+                {% if uso.custo.tipo_campo == "ARQUIVO_PDF" and uso.arquivo_pdf %}
+                <a href="{{ uso.arquivo_pdf.url }}" target="_blank" class="text-xs text-navy underline ml-1">(ver PDF)</a>
+                {% endif %}
+            </span>
             <span class="text-gray-500">R$ {{ uso.subtotal|floatformat:2 }}</span>
         </div>
         {% endfor %}
@@ -144,6 +146,5 @@
     <p class="text-sm text-gray-500">Nenhum custo extra registrado ainda.</p>
     {% endif %}
 </section>
-{% endif %}
 
 {% endblock %}

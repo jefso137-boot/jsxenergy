@@ -190,6 +190,10 @@ class OsCustoExtraUso(models.Model):
         help_text="Preencha só para sobrescrever, nesta OS específica, o valor que seria calculado "
         "automaticamente. Deixe em branco para usar o cálculo normal.",
     )
+    arquivo_pdf = models.FileField(
+        "Arquivo (PDF)", upload_to="custos_extra_arquivos/", null=True, blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["pdf"])],
+    )
     criado_em = models.DateTimeField("Registrado em", auto_now_add=True)
 
     class Meta:
@@ -214,6 +218,8 @@ class OsCustoExtraUso(models.Model):
             return bool(self.texto.strip())
         if tipo == "FOTO":
             return self.fotos.exists()
+        if tipo == "ARQUIVO_PDF":
+            return bool(self.arquivo_pdf)
         return self.marcado
 
     def __str__(self):

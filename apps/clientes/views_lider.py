@@ -107,10 +107,15 @@ def medicao(request):
         criado_por=request.user, tipo=TipoOS.VISTORIA, status=StatusOS.CONCLUIDA
     ).select_related("cliente")
     for os in vistorias:
+        custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
+        valor_custos = sum((u.subtotal() for u in custos), start=0)
+        valor_os = precos.valor_vistoria + valor_custos
+        descricao = "Vistoria"
+        if valor_custos:
+            descricao = "Vistoria + custo extra"
+
         periodo = periodo_para_os(os)
-        grupos[periodo].append(
-            {"cliente": os.cliente, "os": os, "descricao": "Vistoria", "valor": precos.valor_vistoria}
-        )
+        grupos[periodo].append({"cliente": os.cliente, "os": os, "descricao": descricao, "valor": valor_os})
 
     instalacoes = OrdemServico.objects.filter(
         criado_por=request.user, tipo=TipoOS.INSTALACAO, status=StatusOS.CONCLUIDA

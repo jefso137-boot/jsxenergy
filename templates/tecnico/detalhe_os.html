@@ -52,12 +52,10 @@
     </button>
 </form>
 {% endif %}
-{% if os.tipo == "INSTALACAO" %}
 <a href="{% url 'tecnico_os_pdf_materiais' os.pk %}" target="_blank"
    class="block text-center bg-white border border-gray-300 text-navy font-bold rounded-lg py-3 mb-4">
     Ver PDF de materiais e custos utilizados
 </a>
-{% endif %}
 {% endif %}
 
 <!-- ===================== CHECKLIST ===================== -->
@@ -282,7 +280,6 @@ function jsxBindFotoPicker(picker) {
 </script>
 {% endif %}
 
-{% if os.tipo == "INSTALACAO" %}
 <!-- ===================== CUSTOS EXTRAS ===================== -->
 <section class="bg-white rounded-xl shadow p-4 mb-4">
     <h2 class="font-bold text-navy mb-3">Custos extras</h2>
@@ -311,6 +308,12 @@ function jsxBindFotoPicker(picker) {
             <p class="text-sm text-gray-500">{{ uso.texto|default:"—" }}</p>
             {% elif uso.custo.tipo_campo == "CAIXA_SELECAO" %}
             <p class="text-sm text-gray-500">{% if uso.marcado %}Confirmado{% else %}Não confirmado{% endif %}</p>
+            {% elif uso.custo.tipo_campo == "ARQUIVO_PDF" %}
+            {% if uso.arquivo_pdf %}
+            <a href="{{ uso.arquivo_pdf.url }}" target="_blank" class="text-sm text-navy font-bold underline">Ver arquivo PDF</a>
+            {% else %}
+            <p class="text-sm text-gray-500">Sem arquivo ainda</p>
+            {% endif %}
             {% endif %}
         </div>
         {% empty %}
@@ -440,6 +443,25 @@ function jsxBindFotoPicker(picker) {
             textarea.placeholder = 'Descreva';
             textarea.className = 'w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5';
             row.appendChild(textarea);
+        } else if (tipo === 'ARQUIVO_PDF') {
+            var labelArquivo = document.createElement('label');
+            labelArquivo.className = 'block text-center text-sm font-bold bg-navy text-white rounded-lg py-2 cursor-pointer';
+            labelArquivo.textContent = 'Selecionar arquivo PDF';
+            var inputArquivo = document.createElement('input');
+            inputArquivo.type = 'file';
+            inputArquivo.name = 'arquivo_' + option.value;
+            inputArquivo.accept = 'application/pdf';
+            inputArquivo.className = 'hidden';
+            labelArquivo.appendChild(inputArquivo);
+            row.appendChild(labelArquivo);
+
+            var nomeArquivo = document.createElement('p');
+            nomeArquivo.className = 'text-xs text-gray-500 mt-1';
+            row.appendChild(nomeArquivo);
+
+            inputArquivo.addEventListener('change', function () {
+                nomeArquivo.textContent = inputArquivo.files.length ? inputArquivo.files[0].name : '';
+            });
         } else {
             var fotosWrapper = document.createElement('div');
             fotosWrapper.className = 'space-y-2';
@@ -518,7 +540,6 @@ function jsxBindFotoPicker(picker) {
     atualizarVisibilidade();
 })();
 </script>
-{% endif %}
 
 <!-- ===================== RELATÓRIO (conteúdo do PDF) ===================== -->
 <section class="bg-white rounded-xl shadow p-4 mb-4">

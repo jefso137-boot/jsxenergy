@@ -2,6 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -117,9 +118,12 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "salvar_custos_extras":
-            if os.tipo != "INSTALACAO":
-                raise PermissionDenied("Custos extras só se aplicam a OS de instalação.")
-            catalogo = {str(c.id): c for c in CustoExtraCatalogo.objects.filter(ativo=True)}
+            catalogo = {
+                str(c.id): c
+                for c in CustoExtraCatalogo.objects.filter(ativo=True).filter(
+                    Q(aplicavel_em="AMBOS") | Q(aplicavel_em=os.tipo)
+                )
+            }
             salvos = 0
             for custo_id in request.POST.getlist("custo_id"):
                 custo = catalogo.get(custo_id)
@@ -142,6 +146,11 @@ def detalhe_os(request, pk):
                     fotos_novas = request.FILES.getlist(f"foto_{custo_id}")
                     if not fotos_novas:
                         continue
+                elif custo.tipo_campo == TipoCampo.ARQUIVO_PDF:
+                    arquivo_pdf = request.FILES.get(f"arquivo_{custo_id}")
+                    if not arquivo_pdf:
+                        continue
+                    defaults["arquivo_pdf"] = arquivo_pdf
 
                 uso, criado = OsCustoExtraUso.objects.get_or_create(os=os, custo=custo, defaults=defaults)
                 if not criado:
@@ -150,6 +159,8 @@ def detalhe_os(request, pk):
                         uso.marcado = defaults["marcado"]
                     elif custo.tipo_campo == TipoCampo.TEXTO:
                         uso.texto = defaults["texto"]
+                    elif custo.tipo_campo == TipoCampo.ARQUIVO_PDF:
+                        uso.arquivo_pdf = defaults["arquivo_pdf"]
                     uso.save()
 
                 for arquivo in fotos_novas:
@@ -163,8 +174,6 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "excluir_custo_extra":
-            if os.tipo != "INSTALACAO":
-                raise PermissionDenied("Custos extras só se aplicam a OS de instalação.")
             OsCustoExtraUso.objects.filter(os=os, pk=request.POST.get("uso_id")).delete()
             messages.success(request, "Custo extra removido.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
@@ -249,8 +258,8 @@ def detalhe_os(request, pk):
             id__in=materiais_usados.values_list("material_id", flat=True)
         ),
         "custos_extras_usados": custos_extras_usados,
-        "custos_extras_disponiveis": CustoExtraCatalogo.objects.filter(ativo=True).exclude(
-            id__in=custos_extras_usados.values_list("custo_id", flat=True)
-        ),
+        "custos_extras_disponiveis": CustoExtraCatalogo.objects.filter(ativo=True)
+        .filter(Q(aplicavel_em="AMBOS") | Q(aplicavel_em=os.tipo))
+        .exclude(id__in=custos_extras_usados.values_list("custo_id", flat=True)),
     }
     return render(request, "tecnico/detalhe_os.html", context)
