@@ -111,15 +111,23 @@ def montar_grupos_do_lider(lider):
         criado_por=lider, tipo=TipoOS.VISTORIA, status=StatusOS.CONCLUIDA
     ).select_related("cliente")
     for os in vistorias:
-        custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
-        valor_custos = sum((u.subtotal() for u in custos), start=0)
-        valor_os = precos.valor_vistoria + valor_custos
-        descricao = "Vistoria"
-        if valor_custos:
-            descricao = "Vistoria + custo extra"
-
         periodo = periodo_para_os(os)
-        grupos[periodo].append({"cliente": os.cliente, "os": os, "descricao": descricao, "valor": valor_os})
+        grupos[periodo].append(
+            {"cliente": os.cliente, "os": os, "descricao": "Vistoria", "valor": precos.valor_vistoria}
+        )
+        # Cada custo extra vira uma linha própria (não soma tudo junto num só
+        # valor) - assim fica claro de qual custo específico se trata e
+        # quanto ele vale, em vez de um "custo extra" genérico.
+        custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
+        for uso in custos:
+            grupos[periodo].append(
+                {
+                    "cliente": os.cliente,
+                    "os": os,
+                    "descricao": f"Vistoria + {uso.custo.nome}",
+                    "valor": uso.subtotal(),
+                }
+            )
 
     instalacoes = OrdemServico.objects.filter(
         criado_por=lider, tipo=TipoOS.INSTALACAO, status=StatusOS.CONCLUIDA
@@ -130,12 +138,23 @@ def montar_grupos_do_lider(lider):
         valor_padrao = precos.valor_padrao if cliente.instalacao_padrao else 0
         materiais = OsMaterialUso.objects.filter(os=os).select_related("material")
         valor_materiais = sum((u.subtotal() for u in materiais), start=0)
-        custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
-        valor_custos = sum((u.subtotal() for u in custos), start=0)
-        valor_os = valor_painel + valor_padrao + valor_materiais + valor_custos
+        valor_base = valor_painel + valor_padrao + valor_materiais
 
         periodo = periodo_para_os(os)
-        grupos[periodo].append({"cliente": cliente, "os": os, "descricao": "Instalação", "valor": valor_os})
+        grupos[periodo].append({"cliente": cliente, "os": os, "descricao": "Instalação", "valor": valor_base})
+
+        # Idem: cada custo extra da instalação vira sua própria linha, com
+        # nome e valor específicos (ex.: "Instalação + Cabo multiplexado").
+        custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
+        for uso in custos:
+            grupos[periodo].append(
+                {
+                    "cliente": cliente,
+                    "os": os,
+                    "descricao": f"Instalação + {uso.custo.nome}",
+                    "valor": uso.subtotal(),
+                }
+            )
 
     return grupos
 
