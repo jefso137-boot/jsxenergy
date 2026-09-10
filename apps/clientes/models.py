@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.utils import timezone
 
 
 class Cliente(models.Model):
@@ -63,8 +65,10 @@ class Cliente(models.Model):
 
 class FechamentoMedicao(models.Model):
     """Controle de pagamento por semana de medição (quinta a quarta), por líder.
-    Criado automaticamente quando a semana aparece na tela de Medição; o
-    admin marca "pago" quando efetua o pagamento daquele fechamento."""
+    Criado automaticamente quando a semana aparece na tela de Medição. O admin
+    sobe o comprovante e digita o valor pago; o sistema compara com o valor
+    esperado e marca como pago automaticamente quando bate (ou passa), senão
+    mostra o valor pendente - ver save()."""
 
     lider = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -83,7 +87,13 @@ class FechamentoMedicao(models.Model):
     )
     valor_pago = models.DecimalField(
         "Valor pago", max_digits=10, decimal_places=2, null=True, blank=True,
-        help_text="Preencha com o valor que realmente foi transferido ao líder nesse fechamento.",
+        help_text="Preencha com o valor que realmente foi transferido ao líder nesse fechamento. "
+        "Ao salvar, o sistema marca automaticamente como pago se o valor bater (ou passar) o "
+        "esperado, e mostra o valor pendente caso contrário.",
+    )
+    comprovante_pagamento = models.FileField(
+        "Comprovante de pagamento (foto ou PDF)", upload_to="comprovantes_pagamento/", null=True, blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["pdf", "jpg", "jpeg", "png", "heic"])],
     )
     observacao_divergencia = models.TextField(
         "Observação sobre divergência", blank=True,
@@ -100,6 +110,18 @@ class FechamentoMedicao(models.Model):
     def __str__(self):
         return f"{self.lider} — {self.inicio:%d/%m} a {self.fim:%d/%m}"
 
+    def save(self, *args, **kwargs):
+        # Uma vez que o valor pago é informado, ele passa a mandar no status -
+        # bateu (ou passou) o esperado marca como pago automaticamente; senão
+        # fica pendente, mesmo que alguém tenha marcado "pago" manualmente antes.
+        if self.valor_pago is not None and self.valor_esperado is not None:
+            self.pago = self.valor_pago >= self.valor_esperado
+            if self.pago and not self.data_pagamento:
+                self.data_pagamento = timezone.now()
+            elif not self.pago:
+                self.data_pagamento = None
+        super().save(*args, **kwargs)
+
     @property
     def diferenca(self):
         if self.valor_pago is None or self.valor_esperado is None:
@@ -110,3 +132,10 @@ class FechamentoMedicao(models.Model):
     def tem_divergencia(self):
         diferenca = self.diferenca
         return diferenca is not None and diferenca != 0
+
+    @property
+    def valor_pendente(self):
+        if self.valor_pago is None or self.valor_esperado is None:
+            return None
+        pendente = self.valor_esperado - self.valor_pago
+        return pendente if pendente > 0 else 0

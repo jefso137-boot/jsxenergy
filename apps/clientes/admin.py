@@ -38,17 +38,26 @@ class ClienteAdmin(admin.ModelAdmin):
 @admin.register(FechamentoMedicao)
 class FechamentoMedicaoAdmin(admin.ModelAdmin):
     list_display = (
-        "lider", "inicio", "fim", "valor_esperado", "valor_pago", "diferenca_display", "pago", "data_pagamento",
+        "lider", "inicio", "fim", "valor_esperado", "valor_pago", "valor_pendente_display",
+        "diferenca_display", "pago", "data_pagamento",
     )
     list_filter = ("pago", "lider", DivergenciaFilter)
-    readonly_fields = ("lider", "inicio", "fim", "valor_esperado", "diferenca_display")
     fields = (
-        "lider", "inicio", "fim", "valor_esperado", "valor_pago", "diferenca_display",
-        "observacao_divergencia", "pago", "data_pagamento",
+        "lider", "inicio", "fim", "valor_esperado", "comprovante_pagamento", "valor_pago",
+        "valor_pendente_display", "diferenca_display", "observacao_divergencia", "pago", "data_pagamento",
     )
 
     def has_add_permission(self, request):
         return False
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = ["lider", "inicio", "fim", "valor_esperado", "valor_pendente_display", "diferenca_display"]
+        # Uma vez que o valor pago é informado, ele passa a mandar (ver
+        # FechamentoMedicao.save()) - o checkbox/data manuais deixam de ter
+        # efeito, então ficam só como exibição pra não confundir.
+        if obj is not None and obj.valor_pago is not None:
+            readonly += ["pago", "data_pagamento"]
+        return readonly
 
     def diferenca_display(self, obj):
         diferenca = obj.diferenca
@@ -61,9 +70,23 @@ class FechamentoMedicaoAdmin(admin.ModelAdmin):
 
     diferenca_display.short_description = "Diferença (pago - esperado)"
 
+    def valor_pendente_display(self, obj):
+        pendente = obj.valor_pendente
+        if pendente is None:
+            return "—"
+        if pendente == 0:
+            return "Nada pendente"
+        return f"R$ {pendente} pendente"
+
+    valor_pendente_display.short_description = "Valor pendente"
+
     def save_model(self, request, obj, form, change):
-        if obj.pago and not obj.data_pagamento:
-            obj.data_pagamento = timezone.now()
-        elif not obj.pago:
-            obj.data_pagamento = None
+        # obj.save() (FechamentoMedicao.save) já cobre o caso em que valor_pago
+        # foi informado; isso aqui só mantém o toggle manual de "pago" pra
+        # fechamentos que ainda não usam o fluxo de comprovante/valor pago.
+        if obj.valor_pago is None:
+            if obj.pago and not obj.data_pagamento:
+                obj.data_pagamento = timezone.now()
+            elif not obj.pago:
+                obj.data_pagamento = None
         super().save_model(request, obj, form, change)

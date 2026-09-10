@@ -152,6 +152,10 @@ def medicao(request):
                 "aberto": hoje <= fim,
                 "pago": fechamento_obj.pago,
                 "data_pagamento": fechamento_obj.data_pagamento,
+                "valor_pago": fechamento_obj.valor_pago,
+                "valor_pendente_fechamento": fechamento_obj.valor_pendente,
+                "tem_divergencia": fechamento_obj.tem_divergencia,
+                "comprovante_pagamento": fechamento_obj.comprovante_pagamento,
                 "linhas": linhas,
                 "valor_semana": valor_semana,
             }

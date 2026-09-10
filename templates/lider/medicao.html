@@ -33,12 +33,32 @@
         </div>
         {% if fechamento.pago %}
         <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Pago</span>
+        {% elif fechamento.valor_pago is not None %}
+        <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Pago parcialmente</span>
         {% elif fechamento.aberto %}
         <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Em aberto</span>
         {% else %}
         <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-600">Fechado</span>
         {% endif %}
     </div>
+
+    {% if fechamento.valor_pago is not None %}
+    <div class="bg-white rounded-xl shadow p-4 mb-3">
+        <div class="flex justify-between text-sm mb-1">
+            <span class="text-body-gray">Valor pago</span>
+            <span class="font-bold text-navy">R$ {{ fechamento.valor_pago|floatformat:2 }}</span>
+        </div>
+        {% if fechamento.valor_pendente_fechamento %}
+        <div class="flex justify-between text-sm mb-1">
+            <span class="text-body-gray">Valor pendente</span>
+            <span class="font-bold text-orange">R$ {{ fechamento.valor_pendente_fechamento|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+        {% if fechamento.comprovante_pagamento %}
+        <a href="{{ fechamento.comprovante_pagamento.url }}" target="_blank" class="text-xs text-navy underline">Ver comprovante</a>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <div class="space-y-3">
         {% for linha in fechamento.linhas %}
