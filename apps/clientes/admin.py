@@ -45,7 +45,7 @@ class FechamentoMedicaoAdmin(admin.ModelAdmin):
     fields = (
         "lider", "inicio", "fim", "valor_repasse_recebido", "valor_esperado", "comprovante_pagamento",
         "valor_pago", "valor_pendente_display", "valor_pendente_ajustado", "repassar_pendente",
-        "diferenca_display", "observacao_divergencia", "pago", "data_pagamento",
+        "diferenca_display", "diagnostico_diferenca", "observacao_divergencia", "pago", "data_pagamento",
     )
 
     def has_add_permission(self, request):
@@ -101,3 +101,19 @@ class FechamentoMedicaoAdmin(admin.ModelAdmin):
             elif not obj.pago:
                 obj.data_pagamento = None
         super().save_model(request, obj, form, change)
+
+        # Preenche o diagnóstico automático na primeira vez que aparece uma
+        # divergência (sem sobrescrever se o admin já escreveu algo nesse
+        # campo); limpa de novo quando a divergência é resolvida (ex.:
+        # completou o pagamento), pra não deixar um diagnóstico antigo e
+        # desatualizado.
+        if obj.tem_divergencia and not obj.diagnostico_diferenca:
+            from .views_lider import diagnosticar_diferenca
+
+            diagnostico = diagnosticar_diferenca(obj)
+            if diagnostico:
+                obj.diagnostico_diferenca = diagnostico
+                obj.save(update_fields=["diagnostico_diferenca"])
+        elif not obj.tem_divergencia and obj.diagnostico_diferenca:
+            obj.diagnostico_diferenca = ""
+            obj.save(update_fields=["diagnostico_diferenca"])

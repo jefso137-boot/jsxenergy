@@ -96,15 +96,19 @@ def recibo_cliente(request, pk):
     return response
 
 
-@lider_required
-def medicao(request):
+def montar_grupos_do_lider(lider):
+    """Recalcula, direto das OS concluídas, quanto cada semana de fechamento
+    desse líder vale - agrupado por período (início, fim). Usado tanto pela
+    tela de Medição quanto pelo diagnóstico automático de divergência (ver
+    diagnosticar_diferenca), pra nunca ter duas fórmulas de valor da OS
+    divergindo uma da outra."""
     from apps.financas.models import ConfiguracaoPreco
 
     precos = ConfiguracaoPreco.get_solo()
     grupos = defaultdict(list)
 
     vistorias = OrdemServico.objects.filter(
-        criado_por=request.user, tipo=TipoOS.VISTORIA, status=StatusOS.CONCLUIDA
+        criado_por=lider, tipo=TipoOS.VISTORIA, status=StatusOS.CONCLUIDA
     ).select_related("cliente")
     for os in vistorias:
         custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
@@ -118,7 +122,7 @@ def medicao(request):
         grupos[periodo].append({"cliente": os.cliente, "os": os, "descricao": descricao, "valor": valor_os})
 
     instalacoes = OrdemServico.objects.filter(
-        criado_por=request.user, tipo=TipoOS.INSTALACAO, status=StatusOS.CONCLUIDA
+        criado_por=lider, tipo=TipoOS.INSTALACAO, status=StatusOS.CONCLUIDA
     ).select_related("cliente")
     for os in instalacoes:
         cliente = os.cliente
@@ -132,6 +136,61 @@ def medicao(request):
 
         periodo = periodo_para_os(os)
         grupos[periodo].append({"cliente": cliente, "os": os, "descricao": "Instalação", "valor": valor_os})
+
+    return grupos
+
+
+def diagnosticar_diferenca(fechamento):
+    """Tenta explicar automaticamente a diferença entre o valor pago e o
+    valor esperado de um fechamento, procurando um item (ou combinação de
+    até 4 itens) daquela semana cujo valor bata exatamente com a diferença -
+    ex.: a diferença é exatamente o valor de uma vistoria específica, que
+    pode ter ficado de fora da conta. Quando não acha nada que explique,
+    devolve um aviso dizendo isso, em vez de deixar sem explicação nenhuma."""
+    import itertools
+
+    diferenca = fechamento.diferenca
+    if not diferenca:
+        return ""
+
+    alvo = abs(diferenca)
+    itens = []
+
+    grupos = montar_grupos_do_lider(fechamento.lider)
+    linhas = grupos.get((fechamento.inicio, fechamento.fim), [])
+    for linha in linhas:
+        if linha["valor"]:
+            rotulo = f"{linha['descricao']} de {linha['cliente'].nome} (OS #{linha['os'].pk})"
+            itens.append((rotulo, linha["valor"]))
+
+    if fechamento.valor_repasse_recebido:
+        itens.append(("valor repassado da semana anterior", fechamento.valor_repasse_recebido))
+
+    sentido = "menor" if diferenca < 0 else "maior"
+
+    # Combinação simples (1 item) primeiro, depois até 4 itens juntos - achar
+    # com poucos itens é uma explicação bem mais provável (e mais útil) do
+    # que uma combinação grande que bate por coincidência.
+    tamanho_maximo = min(len(itens), 4)
+    for tamanho in range(1, tamanho_maximo + 1):
+        for combinacao in itertools.combinations(itens, tamanho):
+            soma = sum((valor for _, valor in combinacao), start=0)
+            if soma == alvo:
+                rotulos = " + ".join(rotulo for rotulo, _ in combinacao)
+                return (
+                    f"O valor pago ficou R$ {alvo} {sentido} do esperado - essa diferença bate "
+                    f"exatamente com: {rotulos}."
+                )
+
+    return (
+        "Não foi possível identificar automaticamente o que causou essa diferença. "
+        "Confira manualmente e anote o que encontrar no campo de observação."
+    )
+
+
+@lider_required
+def medicao(request):
+    grupos = montar_grupos_do_lider(request.user)
 
     hoje = timezone.localdate()
     periodo_atual = periodo_fechamento(hoje)
@@ -188,6 +247,9 @@ def medicao(request):
                     # (continua visível pro admin no /admin).
                     "observacao_divergencia": (
                         fechamento_obj.observacao_divergencia if pago_parcialmente else ""
+                    ),
+                    "diagnostico_diferenca": (
+                        fechamento_obj.diagnostico_diferenca if pago_parcialmente else ""
                     ),
                     "linhas": linhas,
                     "valor_semana": valor_semana,

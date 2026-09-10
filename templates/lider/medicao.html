@@ -65,6 +65,9 @@
         {% if fechamento.comprovante_pagamento %}
         <a href="{{ fechamento.comprovante_pagamento.url }}" target="_blank" class="text-xs text-navy underline">Ver comprovante</a>
         {% endif %}
+        {% if fechamento.diagnostico_diferenca %}
+        <p class="text-xs text-gray-500 mt-2">{{ fechamento.diagnostico_diferenca }}</p>
+        {% endif %}
         {% if fechamento.observacao_divergencia %}
         <p class="text-xs text-orange mt-2">{{ fechamento.observacao_divergencia }}</p>
         {% endif %}

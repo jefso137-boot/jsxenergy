@@ -120,6 +120,12 @@ class FechamentoMedicao(models.Model):
         help_text="Anote aqui o que foi apurado quando o valor pago não bater com o esperado "
         "(ex.: OS que entrou na semana errada, pagamento duplicado, etc.).",
     )
+    diagnostico_diferenca = models.TextField(
+        "Diagnóstico automático da diferença", blank=True, default="",
+        help_text="Preenchido automaticamente ao salvar um valor pago que não bate com o "
+        "esperado - tenta apontar qual item da semana explica a diferença. Pode ser sobrescrito "
+        "ou apagado manualmente.",
+    )
 
     class Meta:
         verbose_name = "Fechamento de medição"
