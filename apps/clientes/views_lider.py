@@ -178,6 +178,7 @@ def medicao(request):
                     "data_pagamento": fechamento_obj.data_pagamento,
                     "valor_pago": fechamento_obj.valor_pago,
                     "valor_pendente_fechamento": fechamento_obj.valor_pendente,
+                    "valor_pendente_efetivo": pendente_efetivo,
                     "valor_repasse_recebido": fechamento_obj.valor_repasse_recebido,
                     "repassar_pendente": fechamento_obj.repassar_pendente,
                     "tem_divergencia": fechamento_obj.tem_divergencia,
@@ -191,6 +192,7 @@ def medicao(request):
                     "linhas": linhas,
                     "valor_semana": valor_semana,
                     "valor_esperado_total": fechamento_obj.valor_esperado,
+                    "repassado_para_proxima": repassa,
                 }
             )
 
@@ -208,10 +210,16 @@ def medicao(request):
     fechamentos.reverse()  # semana mais recente primeiro, como antes
 
     def _pendente_para_resumo(f):
-        # Numa semana paga parcialmente, o que resta é o valor pendente (já
-        # abatendo o que foi pago) - não o valor total esperado da semana.
+        # Se o pendente dessa semana já foi repassado pra próxima, ele já está
+        # embutido no valor total da semana seguinte - contar aqui também
+        # duplicaria o valor no resumo.
+        if f["repassado_para_proxima"]:
+            return 0
+        # Numa semana paga parcialmente, o que resta é o valor pendente
+        # efetivo (já abatendo o que foi pago, e respeitando um ajuste manual
+        # do admin) - não o valor total esperado da semana.
         if f["valor_pago"] is not None:
-            return f["valor_pendente_fechamento"] or 0
+            return f["valor_pendente_efetivo"] or 0
         return f["valor_esperado_total"] or 0
 
     context = {
