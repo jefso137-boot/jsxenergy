@@ -207,11 +207,16 @@ def medicao(request):
 
     fechamentos.reverse()  # semana mais recente primeiro, como antes
 
+    def _pendente_para_resumo(f):
+        # Numa semana paga parcialmente, o que resta é o valor pendente (já
+        # abatendo o que foi pago) - não o valor total esperado da semana.
+        if f["valor_pago"] is not None:
+            return f["valor_pendente_fechamento"] or 0
+        return f["valor_esperado_total"] or 0
+
     context = {
         "fechamentos": fechamentos,
-        "valor_pendente": sum(
-            (f["valor_esperado_total"] or 0 for f in fechamentos if not f["pago"]), start=0
-        ),
+        "valor_pendente": sum((_pendente_para_resumo(f) for f in fechamentos if not f["pago"]), start=0),
         "qtd_pago": sum(1 for f in fechamentos if f["pago"]),
     }
     return render(request, "lider/medicao.html", context)

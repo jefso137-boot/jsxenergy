@@ -49,6 +49,10 @@
     {% if fechamento.valor_pago is not None %}
     <div class="bg-white rounded-xl shadow p-4 mb-3">
         <div class="flex justify-between text-sm mb-1">
+            <span class="text-body-gray">Valor total</span>
+            <span class="font-bold text-navy">R$ {{ fechamento.valor_esperado_total|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between text-sm mb-1">
             <span class="text-body-gray">Valor pago</span>
             <span class="font-bold text-navy">R$ {{ fechamento.valor_pago|floatformat:2 }}</span>
         </div>
