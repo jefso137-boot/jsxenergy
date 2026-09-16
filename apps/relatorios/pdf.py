@@ -199,6 +199,21 @@ def gerar_materiais_pdf_bytes(ordem_servico):
     return HTML(string=html_string).write_pdf()
 
 
+def gerar_orcamento_pdf_bytes(nome_cliente, itens, total):
+    """Gera (sem persistir em disco) o PDF de um orçamento simulado na
+    calculadora do líder - itens já filtrados/calculados pela view (ver
+    apps/clientes/views_lider.py:calculadora)."""
+    contexto = {
+        "nome_cliente": nome_cliente or "Cliente",
+        "itens": itens,
+        "total": total,
+        "data_emissao": timezone.localtime(timezone.now()).strftime("%d/%m/%Y"),
+        "logo_data_uri": _logo_data_uri(),
+    }
+    html_string = render_to_string("relatorios/orcamento.html", contexto)
+    return HTML(string=html_string).write_pdf()
+
+
 def os_referencia_recibo(cliente):
     """A OS de instalação concluída mais recente do cliente - fonte da data e da
     descrição do serviço que aparecem no recibo."""

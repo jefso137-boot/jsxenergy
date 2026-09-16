@@ -16,7 +16,7 @@ from apps.ordens.models import (
     OsMaterialUso,
     StatusOS,
 )
-from apps.relatorios.pdf import gerar_recibo_pdf_bytes, os_referencia_recibo
+from apps.relatorios.pdf import gerar_orcamento_pdf_bytes, gerar_recibo_pdf_bytes, os_referencia_recibo
 
 from .forms import ClienteCriarForm
 from .models import Cliente, FechamentoMedicao
@@ -311,17 +311,60 @@ def medicao(request):
     return render(request, "lider/medicao.html", context)
 
 
+def _quantidade_da_calculadora(request, campo):
+    from decimal import Decimal, InvalidOperation
+
+    try:
+        quantidade = Decimal(request.POST.get(campo, "0").replace(",", "."))
+    except (TypeError, ValueError, InvalidOperation):
+        return Decimal("0")
+    return quantidade if quantidade > 0 else Decimal("0")
+
+
 @lider_required
 def calculadora(request):
     from apps.financas.models import ConfiguracaoPreco, CustoExtraCatalogo, MaterialCatalogo
 
     precos = ConfiguracaoPreco.get_solo()
+    custos_extras = CustoExtraCatalogo.objects.filter(ativo=True)
+    materiais = MaterialCatalogo.objects.filter(ativo=True)
+
+    if request.method == "POST":
+        itens = []
+
+        def add_item(nome, preco, campo, area=None):
+            quantidade = _quantidade_da_calculadora(request, campo)
+            if not quantidade:
+                return
+            valor = preco * quantidade * (area or 1)
+            itens.append({"nome": nome, "preco": preco, "area": area, "quantidade": quantidade, "valor": valor})
+
+        add_item("Painel", precos.valor_placa, "placa")
+        add_item("Padrão convencional", precos.valor_padrao, "padrao")
+        add_item("Vistoria técnica", precos.valor_vistoria, "vistoria")
+        for c in custos_extras:
+            add_item(c.nome, c.valor, f"custo_{c.id}", area=c.area_por_placa)
+        for m in materiais:
+            add_item(m.nome, m.valor, f"material_{m.id}")
+
+        if not itens:
+            messages.error(request, "Adicione pelo menos um item com quantidade maior que zero pra gerar o orçamento.")
+            return redirect("lider_calculadora")
+
+        nome_cliente = request.POST.get("nome_cliente", "").strip()
+        total = sum((item["valor"] for item in itens), start=0)
+        pdf_bytes = gerar_orcamento_pdf_bytes(nome_cliente, itens, total)
+        nome_arquivo = f"Orcamento-{nome_cliente or 'Cliente'}".replace(" ", "_")
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="{nome_arquivo}.pdf"'
+        return response
+
     context = {
         "valor_placa": precos.valor_placa,
         "valor_padrao": precos.valor_padrao,
         "valor_vistoria": precos.valor_vistoria,
-        "custos_extras": CustoExtraCatalogo.objects.filter(ativo=True),
-        "materiais": MaterialCatalogo.objects.filter(ativo=True),
+        "custos_extras": custos_extras,
+        "materiais": materiais,
     }
     return render(request, "lider/calculadora.html", context)
 
