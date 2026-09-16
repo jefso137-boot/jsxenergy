@@ -4,6 +4,12 @@
 
 <h1 class="text-lg font-extrabold text-navy mb-4">Minhas Ordens de Serviço</h1>
 
+<div class="flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'tecnico_calculadora' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+        Calculadora
+    </a>
+</div>
+
 {% if not ordens %}
 <p class="text-sm text-gray-500">Nenhuma OS atribuída a você no momento.</p>
 {% endif %}

@@ -6,6 +6,7 @@ urlpatterns = [
     path("tecnico/minhas-os/", views_tecnico.minhas_os, name="tecnico_minhas_os"),
     path("tecnico/os/<int:pk>/", views_tecnico.detalhe_os, name="tecnico_detalhe_os"),
     path("tecnico/os/<int:pk>/pdf-materiais/", views_tecnico.pdf_materiais, name="tecnico_os_pdf_materiais"),
+    path("tecnico/calculadora/", views_tecnico.calculadora, name="tecnico_calculadora"),
     path("lider/minhas-os/", views_lider.minhas_os, name="lider_minhas_os"),
     path("lider/os/nova/", views_lider.criar_os, name="lider_criar_os"),
     path("lider/os/<int:pk>/", views_lider.detalhe_os, name="lider_detalhe_os"),
