@@ -97,6 +97,24 @@ def _get_os_do_tecnico(request, pk):
     return get_object_or_404(OrdemServico, pk=pk, tecnico=request.user)
 
 
+def _atualizar_pdf_se_concluida(request, os):
+    """Reemite o PDF do relatório quando a OS já foi concluída - sem isso, o
+    PDF ficava "congelado" com o conteúdo de quando o técnico deu baixa,
+    mesmo que o checklist, as informações do relatório ou os custos extras
+    fossem editados depois."""
+    if os.status != StatusOS.CONCLUIDA:
+        return
+    try:
+        gerar_pdf_os(os)
+    except Exception:
+        logger.exception("Falha ao atualizar PDF da OS #%s (tipo=%s)", os.pk, os.tipo)
+        messages.error(
+            request,
+            "As informações foram salvas, mas houve um erro ao atualizar o PDF. "
+            "Use o botão \"Atualizar PDF do relatório\" abaixo para tentar novamente.",
+        )
+
+
 def _salvar_respostas_checklist(request, os, template):
     for item in template.itens.all():
         defaults = {"observacao": request.POST.get(f"obs_{item.id}", "").strip()}
@@ -139,6 +157,7 @@ def detalhe_os(request, pk):
             if os.status == StatusOS.ABERTA:
                 os.status = StatusOS.EM_ANDAMENTO
                 os.save(update_fields=["status"])
+            _atualizar_pdf_se_concluida(request, os)
             messages.success(request, "Checklist salvo.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
@@ -224,6 +243,7 @@ def detalhe_os(request, pk):
 
                 salvos += 1
             if salvos:
+                _atualizar_pdf_se_concluida(request, os)
                 messages.success(request, "Custos extras registrados.")
             else:
                 messages.error(request, "Nenhum custo extra válido para registrar.")
@@ -231,6 +251,7 @@ def detalhe_os(request, pk):
 
         if acao == "excluir_custo_extra":
             OsCustoExtraUso.objects.filter(os=os, pk=request.POST.get("uso_id")).delete()
+            _atualizar_pdf_se_concluida(request, os)
             messages.success(request, "Custo extra removido.")
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
@@ -238,6 +259,7 @@ def detalhe_os(request, pk):
             narrativa_form = OsNarrativaForm(request.POST, instance=os)
             if narrativa_form.is_valid():
                 narrativa_form.save()
+                _atualizar_pdf_se_concluida(request, os)
                 messages.success(request, "Informações do relatório salvas.")
             else:
                 messages.error(request, "Verifique os campos do relatório.")

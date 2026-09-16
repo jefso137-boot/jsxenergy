@@ -40,9 +40,20 @@
 <span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700 mb-4">OS concluída em {{ os.data_conclusao|date:"d/m/Y H:i" }}</span>
 {% if os.pdf_file %}
 <a href="{{ os.pdf_file.url }}" target="_blank"
-   class="block text-center bg-navy text-white font-bold rounded-lg py-3 mb-4">
+   class="block text-center bg-navy text-white font-bold rounded-lg py-3 mb-2">
     Ver PDF do relatório
 </a>
+<p class="text-xs text-gray-400 text-center mb-4">
+    Atualizado automaticamente sempre que você salva o checklist, as informações do relatório ou os
+    custos extras.
+</p>
+<form method="post" class="mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="acao" value="gerar_pdf">
+    <button type="submit" class="w-full bg-white border border-gray-300 text-navy font-bold rounded-lg py-2.5">
+        Atualizar PDF do relatório agora
+    </button>
+</form>
 {% else %}
 <form method="post" class="mb-4">
     {% csrf_token %}
