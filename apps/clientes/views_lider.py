@@ -2,7 +2,7 @@ import datetime
 from collections import defaultdict
 
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -207,6 +207,22 @@ def diagnosticar_diferenca(fechamento):
     )
 
 
+def _agrupar_linhas_por_cliente(linhas):
+    """Agrupa as linhas (uma por serviço/custo extra) de uma semana por
+    cliente, somando o valor de tudo que é daquele cliente naquela semana -
+    usado pra mostrar só "Cliente — valor total" na tela de Medição, sem
+    listar cada serviço direto ali (ver medicao_cliente pro detalhe)."""
+    agrupado = {}
+    ordem = []
+    for linha in linhas:
+        cliente = linha["cliente"]
+        if cliente.pk not in agrupado:
+            agrupado[cliente.pk] = {"cliente": cliente, "valor": 0}
+            ordem.append(cliente.pk)
+        agrupado[cliente.pk]["valor"] += linha["valor"]
+    return [agrupado[pk] for pk in ordem]
+
+
 @lider_required
 def medicao(request):
     grupos = montar_grupos_do_lider(request.user)
@@ -271,6 +287,7 @@ def medicao(request):
                         fechamento_obj.diagnostico_diferenca if pago_parcialmente else ""
                     ),
                     "linhas": linhas,
+                    "linhas_por_cliente": _agrupar_linhas_por_cliente(linhas),
                     "valor_semana": valor_semana,
                     "valor_esperado_total": fechamento_obj.valor_esperado,
                     "repassado_para_proxima": repassa,
@@ -309,6 +326,49 @@ def medicao(request):
         "qtd_pago": sum(1 for f in fechamentos if f["pago"]),
     }
     return render(request, "lider/medicao.html", context)
+
+
+@lider_required
+def medicao_cliente(request, inicio, cliente_id):
+    """Nível 2 da Medição: as OS de um cliente específico, dentro de uma
+    semana de fechamento específica - agrupadas por OS (vistoria e
+    instalação separadas, se houver as duas na mesma semana). Cada OS listada
+    aqui leva pro detalhe dela (nível 3), que já mostra cada serviço/custo
+    extra individualmente."""
+    try:
+        data_inicio = datetime.datetime.strptime(inicio, "%Y-%m-%d").date()
+    except ValueError:
+        raise Http404("Data inválida.")
+
+    periodo_inicio, periodo_fim = periodo_fechamento(data_inicio)
+    cliente = get_object_or_404(Cliente, pk=cliente_id, criado_por=request.user)
+
+    grupos = montar_grupos_do_lider(request.user)
+    linhas = [
+        linha
+        for linha in grupos.get((periodo_inicio, periodo_fim), [])
+        if linha["cliente"].pk == cliente.pk
+    ]
+    if not linhas:
+        raise Http404("Nenhum serviço desse cliente nessa semana.")
+
+    ordens = {}
+    ordem_das_os = []
+    for linha in linhas:
+        os_pk = linha["os"].pk
+        if os_pk not in ordens:
+            ordens[os_pk] = {"os": linha["os"], "valor": 0}
+            ordem_das_os.append(os_pk)
+        ordens[os_pk]["valor"] += linha["valor"]
+
+    context = {
+        "cliente": cliente,
+        "inicio": periodo_inicio,
+        "fim": periodo_fim,
+        "ordens": [ordens[pk] for pk in ordem_das_os],
+        "valor_total": sum((linha["valor"] for linha in linhas), start=0),
+    }
+    return render(request, "lider/medicao_cliente.html", context)
 
 
 def _quantidade_da_calculadora(request, campo):

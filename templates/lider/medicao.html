@@ -75,20 +75,17 @@
     {% endif %}
 
     <div class="space-y-3">
-        {% if not fechamento.linhas and fechamento.valor_repasse_recebido %}
+        {% if not fechamento.linhas_por_cliente and fechamento.valor_repasse_recebido %}
         <p class="text-sm text-gray-500">Nenhuma OS concluída nessa semana - o valor acima é só o repasse pendente.</p>
         {% endif %}
-        {% for linha in fechamento.linhas %}
-        <div class="bg-white rounded-xl shadow p-4">
-            <a href="{% url 'lider_cliente_detalhe' linha.cliente.pk %}" class="block font-bold text-navy mb-1">{{ linha.cliente.nome }}</a>
-            <a href="{% url 'lider_detalhe_os' linha.os.pk %}" class="text-sm text-body-gray hover:underline">
-                {{ linha.descricao }} — OS #{{ linha.os.pk }} ({{ linha.os.data_agendada|date:"d/m/Y" }})
-            </a>
-            {% if linha.os.data_referencia_medicao %}
-            <p class="text-xs text-gray-400">Movida pelo administrativo para esta semana</p>
-            {% endif %}
-            <p class="text-sm text-body-gray mt-1">R$ {{ linha.valor|floatformat:2 }}</p>
-        </div>
+        {% for grupo in fechamento.linhas_por_cliente %}
+        <a href="{% url 'lider_medicao_cliente' fechamento.inicio|date:'Y-m-d' grupo.cliente.pk %}"
+           class="block bg-white rounded-xl shadow p-4 active:bg-gray-50">
+            <div class="flex items-center justify-between">
+                <span class="font-bold text-navy">{{ grupo.cliente.nome }}</span>
+                <span class="text-sm font-bold text-body-gray">R$ {{ grupo.valor|floatformat:2 }}</span>
+            </div>
+        </a>
         {% endfor %}
     </div>
 </div>
