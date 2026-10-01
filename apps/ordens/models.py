@@ -220,6 +220,8 @@ class OsCustoExtraUso(models.Model):
             return self.fotos.exists()
         if tipo == "ARQUIVO_PDF":
             return bool(self.arquivo_pdf)
+        if tipo == "FOTO_TEXTO":
+            return self.fotos.exists() or bool(self.texto.strip())
         return self.marcado
 
     def __str__(self):

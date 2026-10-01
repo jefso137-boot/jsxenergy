@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
@@ -226,6 +227,23 @@ def detalhe_os(request, pk):
                     if not arquivo_pdf:
                         continue
                     defaults["arquivo_pdf"] = arquivo_pdf
+                elif custo.tipo_campo == TipoCampo.FOTO_TEXTO:
+                    fotos_novas = request.FILES.getlist(f"foto_{custo_id}")
+                    texto_material = request.POST.get(f"texto_{custo_id}", "").strip()
+                    if not fotos_novas and not texto_material:
+                        continue
+                    defaults["texto"] = texto_material
+
+                if custo.valor_definido_pelo_tecnico:
+                    valor_raw = request.POST.get(f"valor_{custo_id}", "").strip().replace(",", ".")
+                    try:
+                        valor_manual = Decimal(valor_raw)
+                    except (InvalidOperation, ValueError):
+                        valor_manual = None
+                    if not valor_manual or valor_manual <= 0:
+                        messages.error(request, f"Informe um valor válido para \"{custo.nome}\".")
+                        continue
+                    defaults["valor_manual"] = valor_manual
 
                 uso, criado = OsCustoExtraUso.objects.get_or_create(os=os, custo=custo, defaults=defaults)
                 if not criado:
@@ -236,6 +254,10 @@ def detalhe_os(request, pk):
                         uso.texto = defaults["texto"]
                     elif custo.tipo_campo == TipoCampo.ARQUIVO_PDF:
                         uso.arquivo_pdf = defaults["arquivo_pdf"]
+                    elif custo.tipo_campo == TipoCampo.FOTO_TEXTO:
+                        uso.texto = defaults["texto"]
+                    if custo.valor_definido_pelo_tecnico:
+                        uso.valor_manual = defaults["valor_manual"]
                     uso.save()
 
                 for arquivo in fotos_novas:

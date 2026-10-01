@@ -23,6 +23,7 @@ class TipoCampo(models.TextChoices):
     TEXTO = "TEXTO", "Texto"
     FOTO = "FOTO", "Foto"
     ARQUIVO_PDF = "ARQUIVO_PDF", "Arquivo (PDF)"
+    FOTO_TEXTO = "FOTO_TEXTO", "Foto + texto"
 
 
 class ChecklistItem(models.Model):

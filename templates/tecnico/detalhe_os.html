@@ -299,7 +299,9 @@ function jsxBindFotoPicker(picker) {
         {% for uso in custos_extras_usados %}
         <div class="border-b border-gray-100 pb-3">
             <div class="flex justify-between items-center text-sm mb-1">
-                <span>{{ uso.quantidade }}x {{ uso.custo.nome }}</span>
+                <span>
+                    {% if uso.custo.valor_definido_pelo_tecnico %}{{ uso.custo.nome }}{% else %}{{ uso.quantidade }}x {{ uso.custo.nome }}{% endif %}
+                </span>
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="acao" value="excluir_custo_extra">
@@ -307,6 +309,9 @@ function jsxBindFotoPicker(picker) {
                     <button type="submit" class="text-xs text-red-600">Excluir</button>
                 </form>
             </div>
+            {% if uso.custo.valor_definido_pelo_tecnico %}
+            <p class="text-sm font-bold text-navy mb-1">R$ {{ uso.subtotal|floatformat:2 }}</p>
+            {% endif %}
             {% if uso.custo.tipo_campo == "FOTO" %}
             <div class="flex flex-wrap gap-2">
                 {% for foto in uso.fotos.all %}
@@ -325,6 +330,15 @@ function jsxBindFotoPicker(picker) {
             {% else %}
             <p class="text-sm text-gray-500">Sem arquivo ainda</p>
             {% endif %}
+            {% elif uso.custo.tipo_campo == "FOTO_TEXTO" %}
+            <p class="text-sm text-gray-500 mb-2">{{ uso.texto|default:"Sem descrição ainda" }}</p>
+            <div class="flex flex-wrap gap-2">
+                {% for foto in uso.fotos.all %}
+                <img src="{{ foto.foto.url }}" class="w-20 h-20 object-cover rounded-lg">
+                {% empty %}
+                <p class="text-sm text-gray-500">Sem foto ainda</p>
+                {% endfor %}
+            </div>
             {% endif %}
         </div>
         {% empty %}
@@ -344,7 +358,8 @@ function jsxBindFotoPicker(picker) {
                 <select id="custo-select" class="w-full rounded-lg border border-gray-300 px-3 py-2">
                     <option value="">Selecione...</option>
                     {% for c in custos_extras_disponiveis %}
-                    <option value="{{ c.id }}" data-tipo="{{ c.tipo_campo }}" data-area="{{ c.area_por_placa|default_if_none:'' }}">{{ c.nome }}</option>
+                    <option value="{{ c.id }}" data-tipo="{{ c.tipo_campo }}" data-area="{{ c.area_por_placa|default_if_none:'' }}"
+                            data-valor-manual="{% if c.valor_definido_pelo_tecnico %}1{% endif %}">{{ c.nome }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -411,12 +426,30 @@ function jsxBindFotoPicker(picker) {
         row.appendChild(inputCustoId);
 
         var area = option.getAttribute('data-area');
+        var valorManual = option.getAttribute('data-valor-manual') === '1';
 
         if (area) {
             var areaInfo = document.createElement('p');
             areaInfo.className = 'text-xs text-gray-400 mb-2';
             areaInfo.textContent = 'Calculado automaticamente pela quantidade de módulos do cliente (' + quantidadeModulos + ' módulo' + (quantidadeModulos === 1 ? '' : 's') + ' × ' + area + ' m²).';
             row.appendChild(areaInfo);
+        } else if (valorManual) {
+            var valorWrapper = document.createElement('div');
+            valorWrapper.className = 'mb-2';
+            var valorLabel = document.createElement('label');
+            valorLabel.className = 'block text-xs font-medium mb-1 text-gray-500';
+            valorLabel.textContent = 'Valor (R$) desse serviço';
+            var valorInput = document.createElement('input');
+            valorInput.type = 'number';
+            valorInput.step = '0.01';
+            valorInput.min = '0.01';
+            valorInput.name = 'valor_' + option.value;
+            valorInput.placeholder = '0,00';
+            valorInput.required = true;
+            valorInput.className = 'w-28 rounded-lg border border-gray-300 px-3 py-1.5 text-sm';
+            valorWrapper.appendChild(valorLabel);
+            valorWrapper.appendChild(valorInput);
+            row.appendChild(valorWrapper);
         } else {
             var qtdWrapper = document.createElement('div');
             qtdWrapper.className = 'mb-2';
@@ -473,6 +506,68 @@ function jsxBindFotoPicker(picker) {
             inputArquivo.addEventListener('change', function () {
                 nomeArquivo.textContent = inputArquivo.files.length ? inputArquivo.files[0].name : '';
             });
+        } else if (tipo === 'FOTO_TEXTO') {
+            var textareaMaterial = document.createElement('textarea');
+            textareaMaterial.name = 'texto_' + option.value;
+            textareaMaterial.rows = 2;
+            textareaMaterial.placeholder = 'Descreva o material utilizado';
+            textareaMaterial.className = 'w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5 mb-2';
+            row.appendChild(textareaMaterial);
+
+            var fotosWrapperFT = document.createElement('div');
+            fotosWrapperFT.className = 'space-y-2';
+
+            var criarFileInputFT = function () {
+                var container = document.createElement('div');
+                var picker = document.createElement('div');
+                picker.className = 'foto-picker flex gap-2';
+
+                var labelCameraFT = document.createElement('label');
+                labelCameraFT.className = 'flex-1 text-center text-sm font-bold bg-navy text-white rounded-lg py-2 cursor-pointer';
+                labelCameraFT.textContent = 'Tirar foto';
+                var inputCameraFT = document.createElement('input');
+                inputCameraFT.type = 'file';
+                inputCameraFT.name = 'foto_' + option.value;
+                inputCameraFT.accept = 'image/*';
+                inputCameraFT.capture = 'environment';
+                inputCameraFT.className = 'hidden';
+                labelCameraFT.appendChild(inputCameraFT);
+
+                var labelGaleriaFT = document.createElement('label');
+                labelGaleriaFT.className = 'flex-1 text-center text-sm font-bold border border-gray-300 text-navy rounded-lg py-2 cursor-pointer';
+                labelGaleriaFT.textContent = 'Galeria';
+                var inputGaleriaFT = document.createElement('input');
+                inputGaleriaFT.type = 'file';
+                inputGaleriaFT.name = 'foto_' + option.value;
+                inputGaleriaFT.accept = 'image/*';
+                inputGaleriaFT.className = 'hidden';
+                labelGaleriaFT.appendChild(inputGaleriaFT);
+
+                picker.appendChild(labelCameraFT);
+                picker.appendChild(labelGaleriaFT);
+
+                var previewFT = document.createElement('div');
+                previewFT.className = 'foto-preview mt-2';
+
+                container.appendChild(picker);
+                container.appendChild(previewFT);
+
+                jsxBindFotoPicker(picker);
+
+                return container;
+            };
+
+            fotosWrapperFT.appendChild(criarFileInputFT());
+            row.appendChild(fotosWrapperFT);
+
+            var btnMaisFotoFT = document.createElement('button');
+            btnMaisFotoFT.type = 'button';
+            btnMaisFotoFT.className = 'text-xs text-orange font-medium mt-1';
+            btnMaisFotoFT.textContent = '+ mais uma foto';
+            btnMaisFotoFT.addEventListener('click', function () {
+                fotosWrapperFT.appendChild(criarFileInputFT());
+            });
+            row.appendChild(btnMaisFotoFT);
         } else {
             var fotosWrapper = document.createElement('div');
             fotosWrapper.className = 'space-y-2';

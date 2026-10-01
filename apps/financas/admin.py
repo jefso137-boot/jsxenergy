@@ -23,6 +23,8 @@ class MaterialCatalogoAdmin(admin.ModelAdmin):
 
 @admin.register(CustoExtraCatalogo)
 class CustoExtraCatalogoAdmin(admin.ModelAdmin):
-    list_display = ("nome", "valor", "area_por_placa", "tipo_campo", "aplicavel_em", "ativo")
-    list_filter = ("ativo", "tipo_campo", "aplicavel_em")
+    list_display = (
+        "nome", "valor", "area_por_placa", "tipo_campo", "aplicavel_em", "valor_definido_pelo_tecnico", "ativo",
+    )
+    list_filter = ("ativo", "tipo_campo", "aplicavel_em", "valor_definido_pelo_tecnico")
     search_fields = ("nome",)

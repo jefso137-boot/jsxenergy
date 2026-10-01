@@ -79,6 +79,12 @@ class CustoExtraCatalogo(models.Model):
         default=AplicavelEm.INSTALACAO,
         help_text="Em qual tipo de OS o técnico pode lançar esse custo extra.",
     )
+    valor_definido_pelo_tecnico = models.BooleanField(
+        "Técnico informa o valor na hora", default=False,
+        help_text="Marque quando o preço varia de serviço pra serviço (ex.: reforma de telhado) - "
+        "em vez do valor fixo do catálogo, o técnico digita o valor dessa vez específica ao "
+        "registrar o custo extra.",
+    )
     ativo = models.BooleanField("Ativo", default=True)
     criado_em = models.DateTimeField("Criado em", auto_now_add=True)
 

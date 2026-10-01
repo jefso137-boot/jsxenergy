@@ -96,19 +96,28 @@ def montar_contexto(ordem_servico):
     for uso in ordem_servico.custos_extras.select_related("custo").prefetch_related("fotos"):
         if not uso.respondido():
             continue
-        if uso.custo.tipo_campo == TipoCampo.FOTO:
+        if uso.custo.tipo_campo in (TipoCampo.FOTO, TipoCampo.FOTO_TEXTO):
             fotos_uso = list(uso.fotos.all())
-            for indice, foto_uso in enumerate(fotos_uso, start=1):
-                titulo = uso.custo.nome
-                if len(fotos_uso) > 1:
-                    titulo = f"{titulo} ({indice}/{len(fotos_uso)})"
+            # No tipo "Foto + texto", o texto descreve o material usado e
+            # aparece como legenda de cada foto desse custo.
+            legenda = uso.texto if uso.custo.tipo_campo == TipoCampo.FOTO_TEXTO else ""
+            if fotos_uso:
+                for indice, foto_uso in enumerate(fotos_uso, start=1):
+                    titulo = uso.custo.nome
+                    if len(fotos_uso) > 1:
+                        titulo = f"{titulo} ({indice}/{len(fotos_uso)})"
+                    fotos.append(
+                        {
+                            "titulo_secao": titulo,
+                            "legenda": legenda,
+                            "data_uri": _foto_para_data_uri(foto_uso.foto),
+                            "texto": "",
+                        }
+                    )
+            else:
+                # Foto + texto sem foto nenhuma - mostra só o texto descritivo.
                 fotos.append(
-                    {
-                        "titulo_secao": titulo,
-                        "legenda": "",
-                        "data_uri": _foto_para_data_uri(foto_uso.foto),
-                        "texto": "",
-                    }
+                    {"titulo_secao": uso.custo.nome, "legenda": "", "data_uri": None, "texto": uso.texto}
                 )
         else:
             entrada = {"titulo_secao": uso.custo.nome, "legenda": "", "data_uri": None, "texto": ""}
