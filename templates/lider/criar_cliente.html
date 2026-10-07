@@ -5,49 +5,49 @@
 
 <a href="{% url 'lider_meus_clientes' %}" class="text-sm text-gray-500">&larr; Meus clientes</a>
 
-<h1 class="text-lg font-extrabold text-navy mt-2 mb-4">Novo cliente</h1>
+<h1 class="text-xl font-semibold text-ink mt-2 mb-4">Novo cliente</h1>
 
 {% if form.errors %}
-<div class="mb-4 rounded-lg bg-red-100 text-red-800 px-4 py-3 text-sm">
+<div class="mb-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm">
     Verifique os campos abaixo antes de continuar.
 </div>
 {% endif %}
 
-<form method="post" class="bg-white rounded-xl shadow p-4 space-y-4">
+<form method="post" class="jsx-card p-4 space-y-4">
     {% csrf_token %}
     <div>
         <label class="block text-sm font-medium mb-1">Nome</label>
-        {% render_field form.nome class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.nome class="w-full jsx-input px-3 py-2" %}
         {% if form.nome.errors %}<p class="text-xs text-red-600 mt-1">{{ form.nome.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Telefone</label>
-        {% render_field form.telefone class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.telefone class="w-full jsx-input px-3 py-2" %}
         {% if form.telefone.errors %}<p class="text-xs text-red-600 mt-1">{{ form.telefone.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">E-mail</label>
-        {% render_field form.email class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.email class="w-full jsx-input px-3 py-2" %}
         {% if form.email.errors %}<p class="text-xs text-red-600 mt-1">{{ form.email.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Endereço</label>
-        {% render_field form.endereco class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.endereco class="w-full jsx-input px-3 py-2" %}
         {% if form.endereco.errors %}<p class="text-xs text-red-600 mt-1">{{ form.endereco.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Cidade</label>
-        {% render_field form.cidade class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.cidade class="w-full jsx-input px-3 py-2" %}
         {% if form.cidade.errors %}<p class="text-xs text-red-600 mt-1">{{ form.cidade.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Link da localização (opcional)</label>
-        {% render_field form.link_localizacao class="w-full rounded-lg border border-gray-300 px-3 py-2" placeholder="https://maps.google.com/..." %}
+        {% render_field form.link_localizacao class="w-full jsx-input px-3 py-2" placeholder="https://maps.google.com/..." %}
         {% if form.link_localizacao.errors %}<p class="text-xs text-red-600 mt-1">{{ form.link_localizacao.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Quantidade de módulos</label>
-        {% render_field form.quantidade_modulos class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.quantidade_modulos class="w-full jsx-input px-3 py-2" %}
         {% if form.quantidade_modulos.errors %}<p class="text-xs text-red-600 mt-1">{{ form.quantidade_modulos.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
@@ -64,7 +64,7 @@
         </label>
         {% if form.precisa_material_ca.errors %}<p class="text-xs text-red-600 mt-1">{{ form.precisa_material_ca.errors|join:", " }}</p>{% endif %}
     </div>
-    <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
+    <button type="submit" class="jsx-btn-primary w-full py-3">
         Cadastrar cliente
     </button>
 </form>

@@ -2,33 +2,32 @@
 {% block title %}Minhas OS — JSX Energy{% endblock %}
 {% block content %}
 
-<h1 class="text-lg font-extrabold text-navy mb-4">Minhas Ordens de Serviço</h1>
+<h1 class="text-xl font-semibold text-ink mb-4">Minhas Ordens de Serviço</h1>
 
-<div class="flex flex-wrap gap-2 mb-4">
-    <a href="{% url 'tecnico_calculadora' %}" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+<div class="flex flex-wrap gap-2 mb-5">
+    <a href="{% url 'tecnico_calculadora' %}" class="jsx-btn-secondary text-sm px-4 py-2">
         Calculadora
     </a>
 </div>
 
 {% if not ordens %}
-<p class="text-sm text-gray-500">Nenhuma OS atribuída a você no momento.</p>
+<p class="text-sm text-ink-muted">Nenhuma OS atribuída a você no momento.</p>
 {% endif %}
 
 <div class="space-y-3">
     {% for os in ordens %}
-    <a href="{% url 'tecnico_detalhe_os' os.pk %}"
-       class="block bg-white rounded-xl shadow p-4 active:bg-gray-50">
+    <a href="{% url 'tecnico_detalhe_os' os.pk %}" class="jsx-card block p-4 active:bg-gray-50">
         <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-navy">{{ os.cliente.nome }}</span>
+            <span class="font-semibold text-ink">{{ os.cliente.nome }}</span>
             {% if os.status == "CONCLUIDA" %}
-            <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Concluída</span>
+            <span class="jsx-pill bg-green-50 text-green-700">Concluída</span>
             {% elif os.status == "EM_ANDAMENTO" %}
-            <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Em andamento</span>
+            <span class="jsx-pill bg-orange/10 text-orange">Em andamento</span>
             {% else %}
-            <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-600">Aberta</span>
+            <span class="jsx-pill bg-gray-100 text-gray-600">Aberta</span>
             {% endif %}
         </div>
-        <div class="text-sm text-body-gray">{{ os.get_tipo_display }}</div>
+        <div class="text-sm text-ink-muted">{{ os.get_tipo_display }}</div>
         <div class="text-xs text-gray-400 mt-1">Agendada para {{ os.data_agendada|date:"d/m/Y" }}</div>
     </a>
     {% endfor %}

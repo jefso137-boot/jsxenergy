@@ -3,9 +3,9 @@
 {% block title %}OS #{{ os.pk }} — JSX Energy{% endblock %}
 {% block content %}
 
-<a href="{% url 'tecnico_minhas_os' %}" class="text-sm text-gray-500">&larr; Minhas OS</a>
+<a href="{% url 'tecnico_minhas_os' %}" class="text-sm text-ink-muted">&larr; Minhas OS</a>
 
-<h1 class="text-lg font-extrabold text-navy mt-2">{{ os.cliente.nome }}</h1>
+<h1 class="text-xl font-semibold text-ink mt-2">{{ os.cliente.nome }}</h1>
 {% if os.cliente.endereco %}
 <p class="text-sm text-body-gray">{{ os.cliente.endereco }}{% if os.cliente.cidade %}, {{ os.cliente.cidade }}{% endif %}</p>
 {% endif %}
@@ -17,17 +17,17 @@
 {% if os.cliente.link_localizacao or os.documento_pdf_1 or os.documento_pdf_2 %}
 <div class="flex flex-wrap gap-2 mb-4">
     {% if os.cliente.link_localizacao %}
-    <a href="{{ os.cliente.link_localizacao }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+    <a href="{{ os.cliente.link_localizacao }}" target="_blank" class="jsx-btn-navy text-xs px-3 py-1.5">
         Localização
     </a>
     {% endif %}
     {% if os.documento_pdf_1 %}
-    <a href="{{ os.documento_pdf_1.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+    <a href="{{ os.documento_pdf_1.url }}" target="_blank" class="jsx-btn-navy text-xs px-3 py-1.5">
         Projeto
     </a>
     {% endif %}
     {% if os.documento_pdf_2 %}
-    <a href="{{ os.documento_pdf_2.url }}" target="_blank" class="text-xs font-bold text-white bg-navy rounded-lg px-3 py-1.5">
+    <a href="{{ os.documento_pdf_2.url }}" target="_blank" class="jsx-btn-navy text-xs px-3 py-1.5">
         Vistoria
     </a>
     {% endif %}
@@ -37,10 +37,9 @@
 {% endif %}
 
 {% if os.status == "CONCLUIDA" %}
-<span class="inline-block text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700 mb-4">OS concluída em {{ os.data_conclusao|date:"d/m/Y H:i" }}</span>
+<span class="jsx-pill bg-green-50 text-green-700 mb-4">OS concluída em {{ os.data_conclusao|date:"d/m/Y H:i" }}</span>
 {% if os.pdf_file %}
-<a href="{{ os.pdf_file.url }}" target="_blank"
-   class="block text-center bg-navy text-white font-bold rounded-lg py-3 mb-2">
+<a href="{{ os.pdf_file.url }}" target="_blank" class="jsx-btn-navy block text-center py-3 mb-2">
     Ver PDF do relatório
 </a>
 <p class="text-xs text-gray-400 text-center mb-4">
@@ -50,7 +49,7 @@
 <form method="post" class="mb-4">
     {% csrf_token %}
     <input type="hidden" name="acao" value="gerar_pdf">
-    <button type="submit" class="w-full bg-white border border-gray-300 text-navy font-bold rounded-lg py-2.5">
+    <button type="submit" class="jsx-btn-secondary w-full py-2.5">
         Atualizar PDF do relatório agora
     </button>
 </form>
@@ -58,20 +57,19 @@
 <form method="post" class="mb-4">
     {% csrf_token %}
     <input type="hidden" name="acao" value="gerar_pdf">
-    <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-3">
+    <button type="submit" class="jsx-btn-primary w-full py-3">
         Gerar PDF do relatório
     </button>
 </form>
 {% endif %}
-<a href="{% url 'tecnico_os_pdf_materiais' os.pk %}" target="_blank"
-   class="block text-center bg-white border border-gray-300 text-navy font-bold rounded-lg py-3 mb-4">
+<a href="{% url 'tecnico_os_pdf_materiais' os.pk %}" target="_blank" class="jsx-btn-secondary block text-center py-3 mb-4">
     Ver PDF de materiais e custos utilizados
 </a>
 {% endif %}
 
 <!-- ===================== CHECKLIST ===================== -->
-<section class="bg-white rounded-xl shadow p-4 mb-4">
-    <h2 class="font-bold text-navy mb-3">Checklist</h2>
+<section class="jsx-card p-4 mb-4">
+    <h2 class="font-semibold text-ink mb-3">Checklist</h2>
     <form method="post" enctype="multipart/form-data" id="form-checklist">
         {% csrf_token %}
         {% if checklist %}
@@ -87,23 +85,23 @@
                 <label class="flex items-center gap-2">
                     <input type="checkbox" name="item_{{ linha.item.id }}" {% if linha.marcado %}checked{% endif %}
                            class="w-5 h-5 accent-orange">
-                    <span class="text-sm text-gray-500">Marcar como confirmado</span>
+                    <span class="text-sm text-ink-muted">Marcar como confirmado</span>
                 </label>
 
                 {% elif linha.item.tipo_campo == "TEXTO" %}
                 <textarea name="item_{{ linha.item.id }}" rows="2" placeholder="Resposta"
-                          class="w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5">{{ linha.texto }}</textarea>
+                          class="w-full text-sm jsx-textarea px-3 py-1.5">{{ linha.texto }}</textarea>
 
                 {% elif linha.item.tipo_campo == "FOTO" %}
                 {% if linha.foto %}
-                <img src="{{ linha.foto.url }}" class="w-20 h-20 object-cover rounded-lg mb-2">
+                <img src="{{ linha.foto.url }}" class="w-20 h-20 object-cover rounded-xl mb-2">
                 {% endif %}
                 <div class="foto-picker flex gap-2">
-                    <label class="flex-1 text-center text-sm font-bold bg-navy text-white rounded-lg py-2 cursor-pointer">
+                    <label class="flex-1 jsx-btn-navy text-center py-2 cursor-pointer">
                         Tirar foto
                         <input type="file" name="item_{{ linha.item.id }}" accept="image/*" capture="environment" class="hidden">
                     </label>
-                    <label class="flex-1 text-center text-sm font-bold border border-gray-300 text-navy rounded-lg py-2 cursor-pointer">
+                    <label class="flex-1 jsx-btn-secondary text-center py-2 cursor-pointer">
                         Galeria
                         <input type="file" name="item_{{ linha.item.id }}" accept="image/*" class="hidden">
                     </label>
@@ -113,15 +111,15 @@
 
                 <input type="text" name="obs_{{ linha.item.id }}" value="{{ linha.observacao }}"
                        placeholder="Observação (opcional)"
-                       class="mt-2 w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5">
+                       class="mt-2 w-full text-sm jsx-textarea px-3 py-1.5">
             </div>
             {% endfor %}
         </div>
-        <button type="submit" name="acao" value="salvar_checklist" class="w-full mt-3 bg-navy text-white font-bold rounded-lg py-2.5">
+        <button type="submit" name="acao" value="salvar_checklist" class="jsx-btn-navy w-full mt-3 py-2.5">
             Salvar checklist
         </button>
         {% else %}
-        <p class="text-sm text-gray-500">Nenhum template de checklist cadastrado para este tipo de OS. Peça ao administrativo para configurar em Checklists.</p>
+        <p class="text-sm text-ink-muted">Nenhum template de checklist cadastrado para este tipo de OS. Peça ao administrativo para configurar em Checklists.</p>
         {% endif %}
     </form>
 </section>
@@ -146,7 +144,7 @@ function jsxBindFotoPicker(picker) {
                     preview.innerHTML = '';
                     var img = document.createElement('img');
                     img.src = e.target.result;
-                    img.className = 'w-20 h-20 object-cover rounded-lg';
+                    img.className = 'w-20 h-20 object-cover rounded-xl';
                     var legenda = document.createElement('p');
                     legenda.className = 'text-xs text-green-700 font-bold mt-1';
                     legenda.textContent = 'Foto selecionada';
@@ -166,8 +164,8 @@ function jsxBindFotoPicker(picker) {
 
 {% if os.tipo == "INSTALACAO" and os.cliente.precisa_material_ca %}
 <!-- ===================== MATERIAIS UTILIZADOS ===================== -->
-<section class="bg-white rounded-xl shadow p-4 mb-4">
-    <h2 class="font-bold text-navy mb-3">Materiais utilizados</h2>
+<section class="jsx-card p-4 mb-4">
+    <h2 class="font-semibold text-ink mb-3">Materiais utilizados</h2>
 
     <div class="space-y-2 mb-4">
         {% for uso in materiais_usados %}
@@ -181,7 +179,7 @@ function jsxBindFotoPicker(picker) {
             </form>
         </div>
         {% empty %}
-        <p class="text-sm text-gray-500">Nenhum material adicionado ainda.</p>
+        <p class="text-sm text-ink-muted">Nenhum material adicionado ainda.</p>
         {% endfor %}
     </div>
 
@@ -194,7 +192,7 @@ function jsxBindFotoPicker(picker) {
         <div id="material-picker-row" class="flex gap-2 items-end {% if not materiais_disponiveis %}hidden{% endif %}">
             <div class="flex-1">
                 <label class="block text-sm font-medium mb-1">Produto</label>
-                <select id="material-select" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                <select id="material-select" class="w-full jsx-input px-3 py-2">
                     <option value="">Selecione...</option>
                     {% for m in materiais_disponiveis %}
                     <option value="{{ m.id }}">{{ m.nome }}</option>
@@ -204,17 +202,17 @@ function jsxBindFotoPicker(picker) {
             <div class="w-20">
                 <label class="block text-sm font-medium mb-1">Qtd.</label>
                 <input type="number" id="material-quantidade" min="1" value="1"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                       class="w-full jsx-input px-3 py-2">
             </div>
-            <button type="button" id="btn-add-material" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+            <button type="button" id="btn-add-material" class="jsx-btn-navy text-sm px-4 py-2">
                 + Adicionar
             </button>
         </div>
-        <p id="materiais-sem-opcao" class="text-sm text-gray-500 {% if materiais_disponiveis %}hidden{% endif %}">
+        <p id="materiais-sem-opcao" class="text-sm text-ink-muted {% if materiais_disponiveis %}hidden{% endif %}">
             Nenhum material disponível para adicionar.
         </p>
 
-        <button type="submit" id="btn-salvar-materiais" class="w-full bg-orange text-white font-bold rounded-lg py-2.5 hidden">
+        <button type="submit" id="btn-salvar-materiais" class="jsx-btn-primary w-full py-2.5 hidden">
             Salvar materiais
         </button>
     </form>
@@ -245,7 +243,7 @@ function jsxBindFotoPicker(picker) {
         if (!option.value || !quantidade || quantidade < 1) return;
 
         var row = document.createElement('div');
-        row.className = 'flex justify-between items-center text-sm border border-gray-200 rounded-lg px-3 py-2';
+        row.className = 'flex justify-between items-center text-sm jsx-input px-3 py-2';
 
         var texto = document.createElement('span');
         texto.textContent = quantidade + 'x ' + option.textContent;
@@ -292,8 +290,8 @@ function jsxBindFotoPicker(picker) {
 {% endif %}
 
 <!-- ===================== CUSTOS EXTRAS ===================== -->
-<section class="bg-white rounded-xl shadow p-4 mb-4">
-    <h2 class="font-bold text-navy mb-3">Custos extras</h2>
+<section class="jsx-card p-4 mb-4">
+    <h2 class="font-semibold text-ink mb-3">Custos extras</h2>
 
     <div class="space-y-3 mb-4">
         {% for uso in custos_extras_usados %}
@@ -310,39 +308,39 @@ function jsxBindFotoPicker(picker) {
                 </form>
             </div>
             {% if uso.custo.valor_definido_pelo_tecnico %}
-            <p class="text-sm font-bold text-navy mb-1">R$ {{ uso.subtotal|floatformat:2 }}</p>
+            <p class="text-sm font-semibold text-ink mb-1">R$ {{ uso.subtotal|floatformat:2 }}</p>
             {% endif %}
             {% if uso.custo.tipo_campo == "FOTO" %}
             <div class="flex flex-wrap gap-2">
                 {% for foto in uso.fotos.all %}
-                <img src="{{ foto.foto.url }}" class="w-20 h-20 object-cover rounded-lg">
+                <img src="{{ foto.foto.url }}" class="w-20 h-20 object-cover rounded-xl">
                 {% empty %}
-                <p class="text-sm text-gray-500">Sem foto ainda</p>
+                <p class="text-sm text-ink-muted">Sem foto ainda</p>
                 {% endfor %}
             </div>
             {% elif uso.custo.tipo_campo == "TEXTO" %}
-            <p class="text-sm text-gray-500">{{ uso.texto|default:"—" }}</p>
+            <p class="text-sm text-ink-muted">{{ uso.texto|default:"—" }}</p>
             {% elif uso.custo.tipo_campo == "CAIXA_SELECAO" %}
-            <p class="text-sm text-gray-500">{% if uso.marcado %}Confirmado{% else %}Não confirmado{% endif %}</p>
+            <p class="text-sm text-ink-muted">{% if uso.marcado %}Confirmado{% else %}Não confirmado{% endif %}</p>
             {% elif uso.custo.tipo_campo == "ARQUIVO_PDF" %}
             {% if uso.arquivo_pdf %}
-            <a href="{{ uso.arquivo_pdf.url }}" target="_blank" class="text-sm text-navy font-bold underline">Ver arquivo PDF</a>
+            <a href="{{ uso.arquivo_pdf.url }}" target="_blank" class="text-sm text-orange font-semibold underline">Ver arquivo PDF</a>
             {% else %}
-            <p class="text-sm text-gray-500">Sem arquivo ainda</p>
+            <p class="text-sm text-ink-muted">Sem arquivo ainda</p>
             {% endif %}
             {% elif uso.custo.tipo_campo == "FOTO_TEXTO" %}
-            <p class="text-sm text-gray-500 mb-2">{{ uso.texto|default:"Sem descrição ainda" }}</p>
+            <p class="text-sm text-ink-muted mb-2">{{ uso.texto|default:"Sem descrição ainda" }}</p>
             <div class="flex flex-wrap gap-2">
                 {% for foto in uso.fotos.all %}
-                <img src="{{ foto.foto.url }}" class="w-20 h-20 object-cover rounded-lg">
+                <img src="{{ foto.foto.url }}" class="w-20 h-20 object-cover rounded-xl">
                 {% empty %}
-                <p class="text-sm text-gray-500">Sem foto ainda</p>
+                <p class="text-sm text-ink-muted">Sem foto ainda</p>
                 {% endfor %}
             </div>
             {% endif %}
         </div>
         {% empty %}
-        <p class="text-sm text-gray-500">Nenhum custo extra adicionado ainda.</p>
+        <p class="text-sm text-ink-muted">Nenhum custo extra adicionado ainda.</p>
         {% endfor %}
     </div>
 
@@ -355,7 +353,7 @@ function jsxBindFotoPicker(picker) {
         <div id="custo-picker-row" class="flex gap-2 items-end {% if not custos_extras_disponiveis %}hidden{% endif %}">
             <div class="flex-1">
                 <label class="block text-sm font-medium mb-1">Custo extra</label>
-                <select id="custo-select" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                <select id="custo-select" class="w-full jsx-input px-3 py-2">
                     <option value="">Selecione...</option>
                     {% for c in custos_extras_disponiveis %}
                     <option value="{{ c.id }}" data-tipo="{{ c.tipo_campo }}" data-area="{{ c.area_por_placa|default_if_none:'' }}"
@@ -363,15 +361,15 @@ function jsxBindFotoPicker(picker) {
                     {% endfor %}
                 </select>
             </div>
-            <button type="button" id="btn-add-custo" class="bg-navy text-white text-sm font-bold rounded-lg px-4 py-2">
+            <button type="button" id="btn-add-custo" class="jsx-btn-navy text-sm px-4 py-2">
                 + Adicionar
             </button>
         </div>
-        <p id="custos-sem-opcao" class="text-sm text-gray-500 {% if custos_extras_disponiveis %}hidden{% endif %}">
+        <p id="custos-sem-opcao" class="text-sm text-ink-muted {% if custos_extras_disponiveis %}hidden{% endif %}">
             Nenhum custo extra disponível para adicionar.
         </p>
 
-        <button type="submit" id="btn-salvar-custos" class="w-full bg-orange text-white font-bold rounded-lg py-2.5 hidden">
+        <button type="submit" id="btn-salvar-custos" class="jsx-btn-primary w-full py-2.5 hidden">
             Salvar custos extras
         </button>
     </form>
@@ -402,7 +400,7 @@ function jsxBindFotoPicker(picker) {
         var tipo = option.getAttribute('data-tipo');
 
         var row = document.createElement('div');
-        row.className = 'border border-gray-200 rounded-lg px-3 py-2';
+        row.className = 'jsx-input px-3 py-2';
 
         var topo = document.createElement('div');
         topo.className = 'flex justify-between items-center text-sm mb-2';
@@ -437,7 +435,7 @@ function jsxBindFotoPicker(picker) {
             var valorWrapper = document.createElement('div');
             valorWrapper.className = 'mb-2';
             var valorLabel = document.createElement('label');
-            valorLabel.className = 'block text-xs font-medium mb-1 text-gray-500';
+            valorLabel.className = 'block text-xs font-medium mb-1 text-ink-muted';
             valorLabel.textContent = 'Valor (R$) desse serviço';
             var valorInput = document.createElement('input');
             valorInput.type = 'number';
@@ -446,7 +444,7 @@ function jsxBindFotoPicker(picker) {
             valorInput.name = 'valor_' + option.value;
             valorInput.placeholder = '0,00';
             valorInput.required = true;
-            valorInput.className = 'w-28 rounded-lg border border-gray-300 px-3 py-1.5 text-sm';
+            valorInput.className = 'w-28 jsx-input px-3 py-1.5 text-sm';
             valorWrapper.appendChild(valorLabel);
             valorWrapper.appendChild(valorInput);
             row.appendChild(valorWrapper);
@@ -454,14 +452,14 @@ function jsxBindFotoPicker(picker) {
             var qtdWrapper = document.createElement('div');
             qtdWrapper.className = 'mb-2';
             var qtdLabel = document.createElement('label');
-            qtdLabel.className = 'block text-xs font-medium mb-1 text-gray-500';
+            qtdLabel.className = 'block text-xs font-medium mb-1 text-ink-muted';
             qtdLabel.textContent = 'Quantidade';
             var qtdInput = document.createElement('input');
             qtdInput.type = 'number';
             qtdInput.name = 'quantidade_' + option.value;
             qtdInput.min = '1';
             qtdInput.value = '1';
-            qtdInput.className = 'w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm';
+            qtdInput.className = 'w-24 jsx-input px-3 py-1.5 text-sm';
             qtdWrapper.appendChild(qtdLabel);
             qtdWrapper.appendChild(qtdInput);
             row.appendChild(qtdWrapper);
@@ -475,7 +473,7 @@ function jsxBindFotoPicker(picker) {
             checkbox.name = 'marcado_' + option.value;
             checkbox.className = 'w-5 h-5 accent-orange';
             var span = document.createElement('span');
-            span.className = 'text-sm text-gray-500';
+            span.className = 'text-sm text-ink-muted';
             span.textContent = 'Marcar como confirmado';
             label.appendChild(checkbox);
             label.appendChild(span);
@@ -485,11 +483,11 @@ function jsxBindFotoPicker(picker) {
             textarea.name = 'texto_' + option.value;
             textarea.rows = 2;
             textarea.placeholder = 'Descreva';
-            textarea.className = 'w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5';
+            textarea.className = 'w-full text-sm jsx-textarea px-3 py-1.5';
             row.appendChild(textarea);
         } else if (tipo === 'ARQUIVO_PDF') {
             var labelArquivo = document.createElement('label');
-            labelArquivo.className = 'block text-center text-sm font-bold bg-navy text-white rounded-lg py-2 cursor-pointer';
+            labelArquivo.className = 'block jsx-btn-navy text-center py-2 cursor-pointer';
             labelArquivo.textContent = 'Selecionar arquivo PDF';
             var inputArquivo = document.createElement('input');
             inputArquivo.type = 'file';
@@ -500,7 +498,7 @@ function jsxBindFotoPicker(picker) {
             row.appendChild(labelArquivo);
 
             var nomeArquivo = document.createElement('p');
-            nomeArquivo.className = 'text-xs text-gray-500 mt-1';
+            nomeArquivo.className = 'text-xs text-ink-muted mt-1';
             row.appendChild(nomeArquivo);
 
             inputArquivo.addEventListener('change', function () {
@@ -511,7 +509,7 @@ function jsxBindFotoPicker(picker) {
             textareaMaterial.name = 'texto_' + option.value;
             textareaMaterial.rows = 2;
             textareaMaterial.placeholder = 'Descreva o material utilizado';
-            textareaMaterial.className = 'w-full text-sm rounded-lg border border-gray-200 px-3 py-1.5 mb-2';
+            textareaMaterial.className = 'w-full text-sm jsx-textarea px-3 py-1.5 mb-2';
             row.appendChild(textareaMaterial);
 
             var fotosWrapperFT = document.createElement('div');
@@ -523,7 +521,7 @@ function jsxBindFotoPicker(picker) {
                 picker.className = 'foto-picker flex gap-2';
 
                 var labelCameraFT = document.createElement('label');
-                labelCameraFT.className = 'flex-1 text-center text-sm font-bold bg-navy text-white rounded-lg py-2 cursor-pointer';
+                labelCameraFT.className = 'flex-1 jsx-btn-navy text-center py-2 cursor-pointer';
                 labelCameraFT.textContent = 'Tirar foto';
                 var inputCameraFT = document.createElement('input');
                 inputCameraFT.type = 'file';
@@ -534,7 +532,7 @@ function jsxBindFotoPicker(picker) {
                 labelCameraFT.appendChild(inputCameraFT);
 
                 var labelGaleriaFT = document.createElement('label');
-                labelGaleriaFT.className = 'flex-1 text-center text-sm font-bold border border-gray-300 text-navy rounded-lg py-2 cursor-pointer';
+                labelGaleriaFT.className = 'flex-1 jsx-btn-secondary text-center py-2 cursor-pointer';
                 labelGaleriaFT.textContent = 'Galeria';
                 var inputGaleriaFT = document.createElement('input');
                 inputGaleriaFT.type = 'file';
@@ -579,7 +577,7 @@ function jsxBindFotoPicker(picker) {
                 picker.className = 'foto-picker flex gap-2';
 
                 var labelCamera = document.createElement('label');
-                labelCamera.className = 'flex-1 text-center text-sm font-bold bg-navy text-white rounded-lg py-2 cursor-pointer';
+                labelCamera.className = 'flex-1 jsx-btn-navy text-center py-2 cursor-pointer';
                 labelCamera.textContent = 'Tirar foto';
                 var inputCamera = document.createElement('input');
                 inputCamera.type = 'file';
@@ -590,7 +588,7 @@ function jsxBindFotoPicker(picker) {
                 labelCamera.appendChild(inputCamera);
 
                 var labelGaleria = document.createElement('label');
-                labelGaleria.className = 'flex-1 text-center text-sm font-bold border border-gray-300 text-navy rounded-lg py-2 cursor-pointer';
+                labelGaleria.className = 'flex-1 jsx-btn-secondary text-center py-2 cursor-pointer';
                 labelGaleria.textContent = 'Galeria';
                 var inputGaleria = document.createElement('input');
                 inputGaleria.type = 'file';
@@ -648,26 +646,26 @@ function jsxBindFotoPicker(picker) {
 </script>
 
 <!-- ===================== RELATÓRIO (conteúdo do PDF) ===================== -->
-<section class="bg-white rounded-xl shadow p-4 mb-4">
-    <h2 class="font-bold text-navy mb-3">Informações do relatório</h2>
+<section class="jsx-card p-4 mb-4">
+    <h2 class="font-semibold text-ink mb-3">Informações do relatório</h2>
     <form method="post" class="space-y-3">
         {% csrf_token %}
         <input type="hidden" name="acao" value="salvar_narrativa">
         <div>
             <label class="block text-sm font-medium mb-1">Relatório técnico</label>
-            {% render_field narrativa_form.narrativa_paragrafos class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+            {% render_field narrativa_form.narrativa_paragrafos class="w-full jsx-input px-3 py-2" %}
         </div>
         <div>
             <label class="block text-sm font-medium mb-1">Status</label>
-            {% render_field narrativa_form.status_pill_text class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+            {% render_field narrativa_form.status_pill_text class="w-full jsx-input px-3 py-2" %}
         </div>
         {% if os.tipo == "INSTALACAO" %}
         <div>
             <label class="block text-sm font-medium mb-1">Descrição do serviço (aparece no recibo)</label>
-            {% render_field narrativa_form.descricao_recibo class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+            {% render_field narrativa_form.descricao_recibo class="w-full jsx-input px-3 py-2" %}
         </div>
         {% endif %}
-        <button type="submit" class="w-full bg-navy text-white font-bold rounded-lg py-2.5">
+        <button type="submit" class="jsx-btn-navy w-full py-2.5">
             Salvar informações do relatório
         </button>
     </form>
@@ -677,7 +675,7 @@ function jsxBindFotoPicker(picker) {
 {% if os.status != "CONCLUIDA" %}
 <button type="submit" form="form-checklist" name="acao" value="dar_baixa"
         onclick="return confirm('Confirma a conclusão desta OS? O relatório em PDF será gerado com o checklist preenchido até aqui, mesmo que ainda não tenha sido salvo.');"
-        class="w-full bg-orange text-white font-extrabold rounded-lg py-4 mb-8 text-lg">
+        class="jsx-btn-primary w-full py-4 mb-8 text-lg">
     Concluir
 </button>
 {% endif %}

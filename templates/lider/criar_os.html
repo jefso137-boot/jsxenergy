@@ -5,34 +5,34 @@
 
 <a href="{% url 'lider_minhas_os' %}" class="text-sm text-gray-500">&larr; Minhas OS</a>
 
-<h1 class="text-lg font-extrabold text-navy mt-2 mb-4">Nova ordem de serviço</h1>
+<h1 class="text-xl font-semibold text-ink mt-2 mb-4">Nova ordem de serviço</h1>
 
-<form method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow p-4 space-y-4">
+<form method="post" enctype="multipart/form-data" class="jsx-card p-4 space-y-4">
     {% csrf_token %}
     <div>
         <label class="block text-sm font-medium mb-1">Cliente</label>
-        {% render_field form.cliente class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.cliente class="w-full jsx-input px-3 py-2" %}
         {% if form.cliente.errors %}<p class="text-xs text-red-600 mt-1">{{ form.cliente.errors|join:", " }}</p>{% endif %}
         <a href="{% url 'lider_criar_cliente' %}" class="text-xs text-orange font-medium mt-1 inline-block">+ Cadastrar novo cliente</a>
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Tipo de OS</label>
-        {% render_field form.tipo id="id_tipo" class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.tipo id="id_tipo" class="w-full jsx-input px-3 py-2" %}
         {% if form.tipo.errors %}<p class="text-xs text-red-600 mt-1">{{ form.tipo.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Técnico responsável</label>
-        {% render_field form.tecnico class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.tecnico class="w-full jsx-input px-3 py-2" %}
         {% if form.tecnico.errors %}<p class="text-xs text-red-600 mt-1">{{ form.tecnico.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Data agendada</label>
-        {% render_field form.data_agendada class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.data_agendada class="w-full jsx-input px-3 py-2" %}
         {% if form.data_agendada.errors %}<p class="text-xs text-red-600 mt-1">{{ form.data_agendada.errors|join:", " }}</p>{% endif %}
     </div>
     <div>
         <label class="block text-sm font-medium mb-1">Observações (opcional)</label>
-        {% render_field form.observacoes class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
+        {% render_field form.observacoes class="w-full jsx-input px-3 py-2" %}
     </div>
     <div id="anexos-instalacao" class="space-y-4 hidden">
         <div>
@@ -46,7 +46,7 @@
             {% if form.documento_pdf_2.errors %}<p class="text-xs text-red-600 mt-1">{{ form.documento_pdf_2.errors|join:", " }}</p>{% endif %}
         </div>
     </div>
-    <button type="submit" class="w-full bg-orange text-white font-bold rounded-lg py-2.5">
+    <button type="submit" class="jsx-btn-primary w-full py-3">
         Criar OS
     </button>
 </form>

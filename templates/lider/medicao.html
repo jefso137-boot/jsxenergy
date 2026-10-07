@@ -2,43 +2,43 @@
 {% block title %}Medição — JSX Energy{% endblock %}
 {% block content %}
 
-<a href="{% url 'lider_minhas_os' %}" class="text-sm text-gray-500">&larr; Minhas OS</a>
+<a href="{% url 'lider_minhas_os' %}" class="text-sm text-ink-muted">&larr; Minhas OS</a>
 
-<h1 class="text-lg font-extrabold text-navy mt-2 mb-4">Medição</h1>
+<h1 class="text-xl font-semibold text-ink mt-2 mb-4">Medição</h1>
 
-<div class="grid grid-cols-2 gap-3 mb-4">
-    <div class="bg-resumo-bg rounded-xl p-4">
-        <p class="text-xs text-gray-500 mb-1">Pendente</p>
-        <p class="text-lg font-extrabold text-orange">R$ {{ valor_pendente|floatformat:2 }}</p>
+<div class="grid grid-cols-2 gap-3 mb-5">
+    <div class="bg-resumo-bg rounded-2xl p-4">
+        <p class="text-xs text-ink-muted mb-1">Pendente</p>
+        <p class="text-lg font-semibold text-orange">R$ {{ valor_pendente|floatformat:2 }}</p>
     </div>
-    <div class="bg-resumo-bg rounded-xl p-4">
-        <p class="text-xs text-gray-500 mb-1">Pago</p>
-        <p class="text-lg font-extrabold text-navy">{{ qtd_pago }} semana{{ qtd_pago|pluralize }} ok</p>
+    <div class="bg-resumo-bg rounded-2xl p-4">
+        <p class="text-xs text-ink-muted mb-1">Pago</p>
+        <p class="text-lg font-semibold text-ink">{{ qtd_pago }} semana{{ qtd_pago|pluralize }} ok</p>
     </div>
 </div>
 
 {% if not fechamentos %}
-<p class="text-sm text-gray-500">Nenhuma OS concluída (dada baixa) ainda.</p>
+<p class="text-sm text-ink-muted">Nenhuma OS concluída (dada baixa) ainda.</p>
 {% endif %}
 
 {% for fechamento in fechamentos %}
 <div class="mb-6">
     <div class="flex items-center justify-between mb-2">
         <div>
-            <p class="text-sm font-bold text-navy">Fechamento {{ fechamento.inicio|date:"d/m" }} a {{ fechamento.fim|date:"d/m" }}</p>
+            <p class="text-sm font-semibold text-ink">Fechamento {{ fechamento.inicio|date:"d/m" }} a {{ fechamento.fim|date:"d/m" }}</p>
             <p class="text-xs text-gray-400">Recebimento em {{ fechamento.recebimento|date:"d/m/Y" }}</p>
             {% if fechamento.pago %}
             <p class="text-xs text-gray-400">Pago em {{ fechamento.data_pagamento|date:"d/m/Y" }}</p>
             {% endif %}
         </div>
         {% if fechamento.pago %}
-        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">Pago</span>
+        <span class="jsx-pill bg-green-50 text-green-700">Pago</span>
         {% elif fechamento.valor_pago is not None %}
-        <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Pago parcialmente</span>
+        <span class="jsx-pill bg-orange/10 text-orange">Pago parcialmente</span>
         {% elif fechamento.aberto %}
-        <span class="text-xs font-bold px-2 py-1 rounded-full bg-orange/20 text-orange">Em aberto</span>
+        <span class="jsx-pill bg-orange/10 text-orange">Em aberto</span>
         {% else %}
-        <span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-600">Fechado</span>
+        <span class="jsx-pill bg-gray-100 text-gray-600">Fechado</span>
         {% endif %}
     </div>
 
@@ -47,26 +47,26 @@
     {% endif %}
 
     {% if fechamento.valor_pago is not None %}
-    <div class="bg-white rounded-xl shadow p-4 mb-3">
+    <div class="jsx-card p-4 mb-3">
         <div class="flex justify-between text-sm mb-1">
-            <span class="text-body-gray">Valor total</span>
-            <span class="font-bold text-navy">R$ {{ fechamento.valor_esperado_total|floatformat:2 }}</span>
+            <span class="text-ink-muted">Valor total</span>
+            <span class="font-semibold text-ink">R$ {{ fechamento.valor_esperado_total|floatformat:2 }}</span>
         </div>
         <div class="flex justify-between text-sm mb-1">
-            <span class="text-body-gray">Valor pago</span>
-            <span class="font-bold text-navy">R$ {{ fechamento.valor_pago|floatformat:2 }}</span>
+            <span class="text-ink-muted">Valor pago</span>
+            <span class="font-semibold text-ink">R$ {{ fechamento.valor_pago|floatformat:2 }}</span>
         </div>
         {% if fechamento.valor_pendente_fechamento %}
         <div class="flex justify-between text-sm mb-1">
-            <span class="text-body-gray">Valor pendente</span>
-            <span class="font-bold text-orange">R$ {{ fechamento.valor_pendente_fechamento|floatformat:2 }}</span>
+            <span class="text-ink-muted">Valor pendente</span>
+            <span class="font-semibold text-orange">R$ {{ fechamento.valor_pendente_fechamento|floatformat:2 }}</span>
         </div>
         {% endif %}
         {% if fechamento.comprovante_pagamento %}
-        <a href="{{ fechamento.comprovante_pagamento.url }}" target="_blank" class="text-xs text-navy underline">Ver comprovante</a>
+        <a href="{{ fechamento.comprovante_pagamento.url }}" target="_blank" class="text-xs text-orange underline">Ver comprovante</a>
         {% endif %}
         {% if fechamento.diagnostico_diferenca %}
-        <p class="text-xs text-gray-500 mt-2">{{ fechamento.diagnostico_diferenca }}</p>
+        <p class="text-xs text-ink-muted mt-2">{{ fechamento.diagnostico_diferenca }}</p>
         {% endif %}
         {% if fechamento.observacao_divergencia %}
         <p class="text-xs text-orange mt-2">{{ fechamento.observacao_divergencia }}</p>
@@ -76,14 +76,14 @@
 
     <div class="space-y-3">
         {% if not fechamento.linhas_por_cliente and fechamento.valor_repasse_recebido %}
-        <p class="text-sm text-gray-500">Nenhuma OS concluída nessa semana - o valor acima é só o repasse pendente.</p>
+        <p class="text-sm text-ink-muted">Nenhuma OS concluída nessa semana - o valor acima é só o repasse pendente.</p>
         {% endif %}
         {% for grupo in fechamento.linhas_por_cliente %}
         <a href="{% url 'lider_medicao_cliente' fechamento.inicio|date:'Y-m-d' grupo.cliente.pk %}"
-           class="block bg-white rounded-xl shadow p-4 active:bg-gray-50">
+           class="jsx-card block p-4 active:bg-gray-50">
             <div class="flex items-center justify-between">
-                <span class="font-bold text-navy">{{ grupo.cliente.nome }}</span>
-                <span class="text-sm font-bold text-body-gray">R$ {{ grupo.valor|floatformat:2 }}</span>
+                <span class="font-semibold text-ink">{{ grupo.cliente.nome }}</span>
+                <span class="text-sm font-semibold text-body-gray">R$ {{ grupo.valor|floatformat:2 }}</span>
             </div>
         </a>
         {% endfor %}

@@ -5,6 +5,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}JSX Energy — ERP{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
     tailwind.config = {
@@ -16,19 +19,70 @@
                     'photo-bg': '#F5F5F6',
                     'resumo-bg': '#F2F3F5',
                     'body-gray': '#3D4759',
+                    ink: '#1d1d1f',
+                    'ink-muted': '#7a7a7a',
+                    hairline: '#e5e5e7',
                 }
             }
         }
     }
 </script>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; }
+    h1, h2, h3 { letter-spacing: -0.015em; }
+
+    /* Sistema de componentes compartilhado (estilo Apple: cartões macios,
+       botões em cápsula, campos com contorno fino e foco em laranja) -
+       usado em todas as telas pra manter o visual consistente sem repetir
+       a mesma receita de classes Tailwind em cada template. */
+    .jsx-card { background: #fff; border-radius: 1.25rem; box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px -14px rgba(16,24,40,.12); }
+
+    .jsx-btn-primary {
+        background: #F5821F; color: #fff; font-weight: 600; border-radius: 9999px;
+        transition: opacity .15s ease, transform .1s ease;
+    }
+    .jsx-btn-primary:hover { opacity: .92; }
+    .jsx-btn-primary:active { transform: scale(0.98); }
+    .jsx-btn-primary:disabled { opacity: .5; }
+
+    .jsx-btn-secondary {
+        background: #fff; color: #333F4F; font-weight: 600; border-radius: 9999px;
+        border: 1px solid #e5e5e7; transition: background-color .15s ease;
+    }
+    .jsx-btn-secondary:hover { background-color: #fafafa; }
+
+    .jsx-btn-navy {
+        background: #333F4F; color: #fff; font-weight: 600; border-radius: 9999px;
+        transition: opacity .15s ease;
+    }
+    .jsx-btn-navy:hover { opacity: .9; }
+
+    .jsx-btn-danger {
+        background: #fff; color: #dc2626; font-weight: 600; border-radius: 9999px;
+        border: 1px solid #fecaca;
+    }
+
+    .jsx-input, .jsx-select, .jsx-textarea {
+        border: 1px solid #e5e5e7; border-radius: 0.9rem; background: #fff;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .jsx-input:focus, .jsx-select:focus, .jsx-textarea:focus {
+        outline: none; border-color: #F5821F; box-shadow: 0 0 0 4px rgba(245,130,31,.12);
+    }
+
+    .jsx-pill {
+        border-radius: 9999px; font-weight: 600; font-size: .75rem;
+        padding: .25rem .625rem; display: inline-block;
+    }
+</style>
 </head>
-<body class="bg-photo-bg min-h-screen text-body-gray">
+<body class="bg-photo-bg min-h-screen text-body-gray antialiased">
 
     {% if user.is_authenticated %}
-    <header class="bg-navy text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <a href="{% url 'painel_redirect' %}" class="flex items-center gap-2">
-            <img src="{% static 'images/jsx_energy_logo.jpeg' %}" alt="JSX Energy" class="w-9 h-9 rounded-lg">
-            <span class="font-extrabold tracking-wide">JSX <span class="text-orange">ENERGY</span></span>
+    <header class="bg-navy text-white px-4 py-3.5 flex items-center justify-between sticky top-0 z-10">
+        <a href="{% url 'painel_redirect' %}" class="flex items-center gap-2.5">
+            <img src="{% static 'images/jsx_energy_logo.jpeg' %}" alt="JSX Energy" class="w-9 h-9 rounded-xl">
+            <span class="font-semibold tracking-tight">JSX <span class="text-orange">ENERGY</span></span>
         </a>
         <div class="flex items-center gap-3 text-sm">
             <a href="{% url 'painel_redirect' %}" class="opacity-80">{{ user.get_full_name|default:user.username }}</a>
@@ -44,7 +98,7 @@
         {% if messages %}
         <div class="mb-4 space-y-2">
             {% for message in messages %}
-            <div class="rounded-lg px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+            <div class="rounded-xl px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
