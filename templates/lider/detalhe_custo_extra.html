@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ uso.custo.nome }} — Medição — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{{ medicao_cliente_url }}" class="text-sm text-ink-muted">&larr; {{ os.cliente.nome }}</a>
+
+<h1 class="text-xl font-semibold text-ink mt-2">{{ uso.custo.nome }}</h1>
+<p class="text-sm text-ink-muted mb-4">
+    Custo extra de {{ os.get_tipo_display }} —
+    <a href="{% url 'lider_detalhe_os' os.pk %}" class="text-orange underline">OS #{{ os.pk }}</a>
+    ({{ os.data_agendada|date:"d/m/Y" }})
+</p>
+
+<section class="bg-resumo-bg rounded-2xl p-4 mb-4">
+    <div class="flex justify-between font-semibold text-ink text-lg">
+        <span>Valor</span>
+        <span>R$ {{ uso.subtotal|floatformat:2 }}</span>
+    </div>
+    {% if not uso.custo.valor_definido_pelo_tecnico %}
+    <div class="flex justify-between text-sm text-ink-muted mt-1">
+        <span>Quantidade</span>
+        <span>{{ uso.quantidade }}</span>
+    </div>
+    {% if uso.custo.area_por_placa %}
+    <div class="flex justify-between text-sm text-ink-muted mt-1">
+        <span>Preço por m²</span>
+        <span>R$ {{ uso.custo.valor|floatformat:2 }}</span>
+    </div>
+    {% elif uso.valor_manual is None %}
+    <div class="flex justify-between text-sm text-ink-muted mt-1">
+        <span>Preço unitário</span>
+        <span>R$ {{ uso.custo.valor|floatformat:2 }}</span>
+    </div>
+    {% endif %}
+    {% endif %}
+</section>
+
+<section class="jsx-card p-4 mb-4">
+    <h2 class="font-semibold text-ink mb-3">O que o técnico registrou</h2>
+
+    {% if uso.custo.tipo_campo == "CAIXA_SELECAO" %}
+    <p class="text-sm text-ink-muted">{% if uso.marcado %}Confirmado{% else %}Não confirmado{% endif %}</p>
+
+    {% elif uso.custo.tipo_campo == "TEXTO" %}
+    <p class="text-sm text-ink-muted">{{ uso.texto|default:"—" }}</p>
+
+    {% elif uso.custo.tipo_campo == "FOTO" %}
+    <div class="flex flex-wrap gap-2">
+        {% for foto in uso.fotos.all %}
+        <img src="{{ foto.foto.url }}" class="w-24 h-24 object-cover rounded-xl">
+        {% empty %}
+        <p class="text-sm text-ink-muted">Sem foto ainda</p>
+        {% endfor %}
+    </div>
+
+    {% elif uso.custo.tipo_campo == "ARQUIVO_PDF" %}
+    {% if uso.arquivo_pdf %}
+    <a href="{{ uso.arquivo_pdf.url }}" target="_blank" class="text-sm text-orange font-semibold underline">Ver arquivo PDF</a>
+    {% else %}
+    <p class="text-sm text-ink-muted">Sem arquivo ainda</p>
+    {% endif %}
+
+    {% elif uso.custo.tipo_campo == "FOTO_TEXTO" %}
+    <p class="text-sm text-ink-muted mb-3">{{ uso.texto|default:"Sem descrição ainda" }}</p>
+    <div class="flex flex-wrap gap-2">
+        {% for foto in uso.fotos.all %}
+        <img src="{{ foto.foto.url }}" class="w-24 h-24 object-cover rounded-xl">
+        {% empty %}
+        <p class="text-sm text-ink-muted">Sem foto ainda</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}

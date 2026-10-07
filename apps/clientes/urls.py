@@ -13,5 +13,15 @@ urlpatterns = [
         views_lider.medicao_cliente,
         name="lider_medicao_cliente",
     ),
+    path(
+        "lider/medicao/os/<int:os_pk>/custo-extra/<int:uso_id>/",
+        views_lider.detalhe_custo_extra,
+        name="lider_detalhe_custo_extra",
+    ),
+    path(
+        "lider/medicao/os/<int:os_pk>/material/<int:uso_id>/",
+        views_lider.detalhe_material,
+        name="lider_detalhe_material",
+    ),
     path("lider/calculadora/", views_lider.calculadora, name="lider_calculadora"),
 ]

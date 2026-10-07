@@ -4,6 +4,7 @@ from collections import defaultdict
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.checklists.models import TipoOS
@@ -113,11 +114,16 @@ def montar_grupos_do_lider(lider):
     for os in vistorias:
         periodo = periodo_para_os(os)
         grupos[periodo].append(
-            {"cliente": os.cliente, "os": os, "descricao": "Vistoria", "valor": precos.valor_vistoria}
+            {
+                "cliente": os.cliente, "os": os, "descricao": "Vistoria", "valor": precos.valor_vistoria,
+                "tipo_linha": "servico", "uso_id": None,
+            }
         )
         # Cada custo extra vira uma linha própria (não soma tudo junto num só
         # valor) - assim fica claro de qual custo específico se trata e
-        # quanto ele vale, em vez de um "custo extra" genérico.
+        # quanto ele vale, em vez de um "custo extra" genérico. "tipo_linha" +
+        # "uso_id" permitem montar o link pra tela de detalhe certa de cada
+        # linha (ver medicao_cliente / detalhe_custo_extra).
         custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
         for uso in custos:
             grupos[periodo].append(
@@ -126,6 +132,8 @@ def montar_grupos_do_lider(lider):
                     "os": os,
                     "descricao": f"Vistoria + {uso.custo.nome}",
                     "valor": uso.subtotal(),
+                    "tipo_linha": "custo_extra",
+                    "uso_id": uso.pk,
                 }
             )
 
@@ -136,12 +144,31 @@ def montar_grupos_do_lider(lider):
         cliente = os.cliente
         valor_painel = cliente.quantidade_modulos * precos.valor_placa
         valor_padrao = precos.valor_padrao if cliente.instalacao_padrao else 0
-        materiais = OsMaterialUso.objects.filter(os=os).select_related("material")
-        valor_materiais = sum((u.subtotal() for u in materiais), start=0)
-        valor_base = valor_painel + valor_padrao + valor_materiais
+        valor_base = valor_painel + valor_padrao
 
         periodo = periodo_para_os(os)
-        grupos[periodo].append({"cliente": cliente, "os": os, "descricao": "Instalação", "valor": valor_base})
+        grupos[periodo].append(
+            {
+                "cliente": cliente, "os": os, "descricao": "Instalação", "valor": valor_base,
+                "tipo_linha": "servico", "uso_id": None,
+            }
+        )
+
+        # Cada material vira sua própria linha também, pelo mesmo motivo dos
+        # custos extras - antes ficava tudo somado dentro do valor da
+        # "Instalação", sem dar pra saber qual material pesou no total.
+        materiais = OsMaterialUso.objects.filter(os=os).select_related("material")
+        for uso in materiais:
+            grupos[periodo].append(
+                {
+                    "cliente": cliente,
+                    "os": os,
+                    "descricao": f"Instalação + {uso.material.nome}",
+                    "valor": uso.subtotal(),
+                    "tipo_linha": "material",
+                    "uso_id": uso.pk,
+                }
+            )
 
         # Idem: cada custo extra da instalação vira sua própria linha, com
         # nome e valor específicos (ex.: "Instalação + Cabo multiplexado").
@@ -153,6 +180,8 @@ def montar_grupos_do_lider(lider):
                     "os": os,
                     "descricao": f"Instalação + {uso.custo.nome}",
                     "valor": uso.subtotal(),
+                    "tipo_linha": "custo_extra",
+                    "uso_id": uso.pk,
                 }
             )
 
@@ -330,11 +359,11 @@ def medicao(request):
 
 @lider_required
 def medicao_cliente(request, inicio, cliente_id):
-    """Nível 2 da Medição: as OS de um cliente específico, dentro de uma
-    semana de fechamento específica - agrupadas por OS (vistoria e
-    instalação separadas, se houver as duas na mesma semana). Cada OS listada
-    aqui leva pro detalhe dela (nível 3), que já mostra cada serviço/custo
-    extra individualmente."""
+    """Nível 2 da Medição: cada serviço/material/custo extra de um cliente
+    específico, dentro de uma semana de fechamento específica - uma linha
+    por item, explicando como o valor total foi composto. Cada linha leva
+    pra tela de detalhe certa daquele tipo de item (ver detalhe_custo_extra,
+    detalhe_material; serviço base vai direto pro detalhe da OS)."""
     try:
         data_inicio = datetime.datetime.strptime(inicio, "%Y-%m-%d").date()
     except ValueError:
@@ -352,23 +381,49 @@ def medicao_cliente(request, inicio, cliente_id):
     if not linhas:
         raise Http404("Nenhum serviço desse cliente nessa semana.")
 
-    ordens = {}
-    ordem_das_os = []
-    for linha in linhas:
-        os_pk = linha["os"].pk
-        if os_pk not in ordens:
-            ordens[os_pk] = {"os": linha["os"], "valor": 0}
-            ordem_das_os.append(os_pk)
-        ordens[os_pk]["valor"] += linha["valor"]
-
     context = {
         "cliente": cliente,
         "inicio": periodo_inicio,
         "fim": periodo_fim,
-        "ordens": [ordens[pk] for pk in ordem_das_os],
+        "linhas": linhas,
         "valor_total": sum((linha["valor"] for linha in linhas), start=0),
     }
     return render(request, "lider/medicao_cliente.html", context)
+
+
+@lider_required
+def detalhe_custo_extra(request, os_pk, uso_id):
+    """Nível 3 (um dos tipos) da Medição: detalhe de um custo extra
+    específico lançado numa OS - nome, valor e o que o técnico registrou
+    (texto, foto, PDF ou confirmação, dependendo do tipo do custo)."""
+    os = get_object_or_404(OrdemServico, pk=os_pk, criado_por=request.user)
+    uso = get_object_or_404(OsCustoExtraUso, pk=uso_id, os=os)
+    periodo = periodo_para_os(os)
+    context = {
+        "os": os,
+        "uso": uso,
+        "medicao_cliente_url": reverse(
+            "lider_medicao_cliente", args=[periodo[0].isoformat(), os.cliente_id]
+        ),
+    }
+    return render(request, "lider/detalhe_custo_extra.html", context)
+
+
+@lider_required
+def detalhe_material(request, os_pk, uso_id):
+    """Nível 3 (um dos tipos) da Medição: detalhe de um material específico
+    usado numa OS - produto, quantidade, valor unitário e subtotal."""
+    os = get_object_or_404(OrdemServico, pk=os_pk, criado_por=request.user)
+    uso = get_object_or_404(OsMaterialUso, pk=uso_id, os=os)
+    periodo = periodo_para_os(os)
+    context = {
+        "os": os,
+        "uso": uso,
+        "medicao_cliente_url": reverse(
+            "lider_medicao_cliente", args=[periodo[0].isoformat(), os.cliente_id]
+        ),
+    }
+    return render(request, "lider/detalhe_material.html", context)
 
 
 def _quantidade_da_calculadora(request, campo):
