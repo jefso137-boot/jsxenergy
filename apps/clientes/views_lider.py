@@ -154,19 +154,21 @@ def montar_grupos_do_lider(lider):
             }
         )
 
-        # Cada material vira sua própria linha também, pelo mesmo motivo dos
-        # custos extras - antes ficava tudo somado dentro do valor da
-        # "Instalação", sem dar pra saber qual material pesou no total.
+        # Os materiais viram UMA linha agregada "Material" (não uma por item,
+        # como custo extra) - o detalhe de cada material (quantidade, preço
+        # unitário) fica pra tela de detalhe dessa linha, igual à lista que
+        # já existia dentro do detalhe da OS.
         materiais = OsMaterialUso.objects.filter(os=os).select_related("material")
-        for uso in materiais:
+        valor_materiais = sum((u.subtotal() for u in materiais), start=0)
+        if valor_materiais:
             grupos[periodo].append(
                 {
                     "cliente": cliente,
                     "os": os,
-                    "descricao": uso.material.nome,
-                    "valor": uso.subtotal(),
+                    "descricao": "Material",
+                    "valor": valor_materiais,
                     "tipo_linha": "material",
-                    "uso_id": uso.pk,
+                    "uso_id": None,
                 }
             )
 
@@ -410,20 +412,22 @@ def detalhe_custo_extra(request, os_pk, uso_id):
 
 
 @lider_required
-def detalhe_material(request, os_pk, uso_id):
-    """Nível 3 (um dos tipos) da Medição: detalhe de um material específico
-    usado numa OS - produto, quantidade, valor unitário e subtotal."""
+def detalhe_materiais(request, os_pk):
+    """Nível 3 (um dos tipos) da Medição: todos os materiais usados numa OS -
+    uma linha "Material" agregada leva aqui, igual já existia dentro do
+    detalhe da OS, com o mesmo PDF de materiais/custos reaproveitado."""
     os = get_object_or_404(OrdemServico, pk=os_pk, criado_por=request.user)
-    uso = get_object_or_404(OsMaterialUso, pk=uso_id, os=os)
+    materiais_usados = os.materiais_usados.select_related("material").all()
     periodo = periodo_para_os(os)
     context = {
         "os": os,
-        "uso": uso,
+        "materiais_usados": materiais_usados,
+        "valor_total": sum((uso.subtotal() for uso in materiais_usados), start=0),
         "medicao_cliente_url": reverse(
             "lider_medicao_cliente", args=[periodo[0].isoformat(), os.cliente_id]
         ),
     }
-    return render(request, "lider/detalhe_material.html", context)
+    return render(request, "lider/detalhe_materiais.html", context)
 
 
 def _quantidade_da_calculadora(request, campo):

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Materiais — Medição — JSX Energy{% endblock %}
+{% block content %}
+
+<a href="{{ medicao_cliente_url }}" class="text-sm text-ink-muted">&larr; {{ os.cliente.nome }}</a>
+
+<h1 class="text-xl font-semibold text-ink mt-2">Materiais</h1>
+<p class="text-sm text-ink-muted mb-4">
+    Material usado na {{ os.get_tipo_display }} —
+    <a href="{% url 'lider_detalhe_os' os.pk %}" class="text-orange underline">OS #{{ os.pk }}</a>
+    ({{ os.data_agendada|date:"d/m/Y" }})
+</p>
+
+<section class="bg-resumo-bg rounded-2xl p-4 mb-4">
+    <div class="flex justify-between font-semibold text-ink text-lg">
+        <span>Total</span>
+        <span>R$ {{ valor_total|floatformat:2 }}</span>
+    </div>
+</section>
+
+<section class="jsx-card p-4 mb-4">
+    <h2 class="font-semibold text-ink mb-3">Itens</h2>
+    {% if materiais_usados %}
+    <div class="space-y-2">
+        {% for uso in materiais_usados %}
+        <div class="flex justify-between text-sm border-b border-gray-100 pb-2">
+            <span>{{ uso.quantidade }}x {{ uso.material.nome }}</span>
+            <span class="text-ink-muted">R$ {{ uso.subtotal|floatformat:2 }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-ink-muted">Nenhum material registrado.</p>
+    {% endif %}
+</section>
+
+<a href="{% url 'lider_os_pdf_materiais' os.pk %}" target="_blank" class="jsx-btn-secondary block text-center py-3 mb-8">
+    Ver PDF de materiais e custos utilizados
+</a>
+
+{% endblock %}

@@ -19,9 +19,9 @@ urlpatterns = [
         name="lider_detalhe_custo_extra",
     ),
     path(
-        "lider/medicao/os/<int:os_pk>/material/<int:uso_id>/",
-        views_lider.detalhe_material,
-        name="lider_detalhe_material",
+        "lider/medicao/os/<int:os_pk>/materiais/",
+        views_lider.detalhe_materiais,
+        name="lider_detalhe_materiais",
     ),
     path("lider/calculadora/", views_lider.calculadora, name="lider_calculadora"),
 ]

@@ -19,7 +19,7 @@
     {% if linha.tipo_linha == "custo_extra" %}
     <a href="{% url 'lider_detalhe_custo_extra' linha.os.pk linha.uso_id %}" class="jsx-card block p-4 active:bg-gray-50">
     {% elif linha.tipo_linha == "material" %}
-    <a href="{% url 'lider_detalhe_material' linha.os.pk linha.uso_id %}" class="jsx-card block p-4 active:bg-gray-50">
+    <a href="{% url 'lider_detalhe_materiais' linha.os.pk %}" class="jsx-card block p-4 active:bg-gray-50">
     {% else %}
     <a href="{% url 'lider_detalhe_os' linha.os.pk %}" class="jsx-card block p-4 active:bg-gray-50">
     {% endif %}
