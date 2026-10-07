@@ -1,35 +1,100 @@
-{% extends "base.html" %}
 {% load static %}
-{% block title %}Login — JSX Energy{% endblock %}
-{% block content %}
-<div class="mt-16 bg-white rounded-2xl shadow p-8">
-    <div class="text-center mb-8">
-        <img src="{% static 'images/jsx_energy_logo.jpeg' %}" alt="JSX Energy" class="w-24 h-24 rounded-2xl mx-auto">
-        <p class="text-sm text-gray-500 mt-3">Sistema de Ordens de Serviço</p>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login — JSX Energy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    navy: '#333F4F',
+                    orange: '#F5821F',
+                    ink: '#1d1d1f',
+                    'ink-muted': '#7a7a7a',
+                    parchment: '#f5f5f7',
+                    hairline: '#e0e0e0',
+                },
+                fontFamily: {
+                    sf: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'Segoe UI', 'sans-serif'],
+                },
+            }
+        }
+    }
+</script>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; }
+    .hero-title { letter-spacing: -0.02em; }
+    .field-input {
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .field-input:focus {
+        outline: none;
+        border-color: #F5821F;
+        box-shadow: 0 0 0 4px rgba(245, 130, 31, 0.12);
+    }
+</style>
+</head>
+<body class="bg-white text-ink antialiased">
+
+<div class="min-h-screen lg:grid lg:grid-cols-5">
+
+    <!-- Lado fotográfico (Apple: a imagem carrega o peso emocional, a UI recua) -->
+    <div class="relative h-[34vh] lg:h-auto lg:col-span-3 overflow-hidden">
+        <img src="{% static 'images/login-solar.jpg' %}" alt="Instalação fotovoltaica"
+             class="absolute inset-0 w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/10 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-8 lg:p-14">
+            <p class="hero-title text-white text-2xl lg:text-4xl font-semibold leading-tight max-w-md">
+                Gestão completa de instalação e vistoria fotovoltaica.
+            </p>
+        </div>
     </div>
 
-    {% if form.errors %}
-    <div class="mb-4 rounded-lg bg-red-100 text-red-800 px-4 py-3 text-sm">
-        Usuário ou senha inválidos.
-    </div>
-    {% endif %}
+    <!-- Painel de login -->
+    <div class="flex items-center justify-center px-6 py-10 lg:col-span-2 lg:px-16">
+        <div class="w-full max-w-sm">
+            <img src="{% static 'images/jsx_energy_logo.jpeg' %}" alt="JSX Energy" class="w-14 h-14 rounded-2xl mb-6">
 
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        <div>
-            <label class="block text-sm font-medium mb-1">Usuário</label>
-            <input type="text" name="username" autofocus required
-                   class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange">
+            <h1 class="hero-title text-[28px] font-semibold text-ink mb-1">Entrar</h1>
+            <p class="text-ink-muted text-[15px] mb-8">Sistema de Ordens de Serviço</p>
+
+            {% if form.errors %}
+            <div class="mb-5 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm">
+                Usuário ou senha inválidos.
+            </div>
+            {% endif %}
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+                <div>
+                    <label class="block text-xs font-medium text-ink-muted mb-1.5">Usuário</label>
+                    <input type="text" name="username" autofocus required
+                           class="field-input w-full rounded-xl border border-hairline px-4 py-3 text-[15px]">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-ink-muted mb-1.5">Senha</label>
+                    <input type="password" name="password" required
+                           class="field-input w-full rounded-xl border border-hairline px-4 py-3 text-[15px]">
+                </div>
+                <button type="submit"
+                        class="w-full bg-orange text-white font-semibold text-[15px] rounded-full py-3.5 mt-2 hover:opacity-90 transition-opacity">
+                    Entrar
+                </button>
+            </form>
         </div>
-        <div>
-            <label class="block text-sm font-medium mb-1">Senha</label>
-            <input type="password" name="password" required
-                   class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange">
-        </div>
-        <button type="submit"
-                class="w-full bg-orange text-white font-bold rounded-lg py-3 mt-2">
-            Entrar
-        </button>
-    </form>
+    </div>
+
 </div>
-{% endblock %}
+
+</body>
+</html>
