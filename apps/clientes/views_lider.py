@@ -130,7 +130,7 @@ def montar_grupos_do_lider(lider):
                 {
                     "cliente": os.cliente,
                     "os": os,
-                    "descricao": f"Vistoria + {uso.custo.nome}",
+                    "descricao": uso.custo.nome,
                     "valor": uso.subtotal(),
                     "tipo_linha": "custo_extra",
                     "uso_id": uso.pk,
@@ -163,7 +163,7 @@ def montar_grupos_do_lider(lider):
                 {
                     "cliente": cliente,
                     "os": os,
-                    "descricao": f"Instalação + {uso.material.nome}",
+                    "descricao": uso.material.nome,
                     "valor": uso.subtotal(),
                     "tipo_linha": "material",
                     "uso_id": uso.pk,
@@ -171,14 +171,14 @@ def montar_grupos_do_lider(lider):
             )
 
         # Idem: cada custo extra da instalação vira sua própria linha, com
-        # nome e valor específicos (ex.: "Instalação + Cabo multiplexado").
+        # nome e valor específicos (ex.: "Cabo multiplexado").
         custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
         for uso in custos:
             grupos[periodo].append(
                 {
                     "cliente": cliente,
                     "os": os,
-                    "descricao": f"Instalação + {uso.custo.nome}",
+                    "descricao": uso.custo.nome,
                     "valor": uso.subtotal(),
                     "tipo_linha": "custo_extra",
                     "uso_id": uso.pk,
