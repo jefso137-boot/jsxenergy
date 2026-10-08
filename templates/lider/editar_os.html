@@ -19,6 +19,12 @@
         {% render_field form.tipo id="id_tipo" class="w-full jsx-input px-3 py-2" %}
         {% if form.tipo.errors %}<p class="text-xs text-red-600 mt-1">{{ form.tipo.errors|join:", " }}</p>{% endif %}
     </div>
+    <div id="servico-manutencao" class="{% if os.tipo != 'MANUTENCAO' %}hidden{% endif %}">
+        <label class="block text-sm font-medium mb-1">Serviço de manutenção (opcional)</label>
+        {% render_field form.servico class="w-full jsx-input px-3 py-2" %}
+        <p class="text-xs text-gray-400 mt-1">Define o valor cobrado automaticamente ao concluir. Deixe em branco se o valor vai ser lançado na hora como custo extra.</p>
+        {% if form.servico.errors %}<p class="text-xs text-red-600 mt-1">{{ form.servico.errors|join:", " }}</p>{% endif %}
+    </div>
     <div>
         <label class="block text-sm font-medium mb-1">Técnico responsável</label>
         {% render_field form.tecnico class="w-full jsx-input px-3 py-2" %}
@@ -56,10 +62,12 @@
 (function () {
     var tipoSelect = document.getElementById('id_tipo');
     var anexos = document.getElementById('anexos-instalacao');
+    var servico = document.getElementById('servico-manutencao');
     if (!tipoSelect || !anexos) return;
 
     function atualizar() {
         anexos.classList.toggle('hidden', tipoSelect.value !== 'INSTALACAO');
+        if (servico) servico.classList.toggle('hidden', tipoSelect.value !== 'MANUTENCAO');
     }
 
     tipoSelect.addEventListener('change', atualizar);

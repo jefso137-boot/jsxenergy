@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ConfiguracaoPreco, CustoExtraCatalogo, MaterialCatalogo
+from .models import ConfiguracaoPreco, CustoExtraCatalogo, MaterialCatalogo, ServicoCatalogo
 
 
 @admin.register(ConfiguracaoPreco)
@@ -27,4 +27,11 @@ class CustoExtraCatalogoAdmin(admin.ModelAdmin):
         "nome", "valor", "area_por_placa", "tipo_campo", "aplicavel_em", "valor_definido_pelo_tecnico", "ativo",
     )
     list_filter = ("ativo", "tipo_campo", "aplicavel_em", "valor_definido_pelo_tecnico")
+    search_fields = ("nome",)
+
+
+@admin.register(ServicoCatalogo)
+class ServicoCatalogoAdmin(admin.ModelAdmin):
+    list_display = ("nome", "valor", "aplicavel_em", "ativo")
+    list_filter = ("ativo", "aplicavel_em")
     search_fields = ("nome",)

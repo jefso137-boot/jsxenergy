@@ -114,9 +114,10 @@ def montar_grupos_do_lider(lider):
     ).select_related("cliente")
     for os in vistorias:
         periodo = periodo_para_os(os)
+        valor = os.valor_servico_manual if os.valor_servico_manual is not None else precos.valor_vistoria
         grupos[periodo].append(
             {
-                "cliente": os.cliente, "os": os, "descricao": "Vistoria", "valor": precos.valor_vistoria,
+                "cliente": os.cliente, "os": os, "descricao": "Vistoria", "valor": valor,
                 "tipo_linha": "servico", "uso_id": None,
             }
         )
@@ -145,7 +146,8 @@ def montar_grupos_do_lider(lider):
         cliente = os.cliente
         valor_painel = cliente.quantidade_modulos * precos.valor_placa
         valor_padrao = precos.valor_padrao if cliente.instalacao_padrao else 0
-        valor_base = valor_painel + valor_padrao
+        valor_automatico = valor_painel + valor_padrao
+        valor_base = os.valor_servico_manual if os.valor_servico_manual is not None else valor_automatico
 
         periodo = periodo_para_os(os)
         grupos[periodo].append(
@@ -188,17 +190,43 @@ def montar_grupos_do_lider(lider):
                 }
             )
 
-    # Manutenção não tem valor base automático - o próprio serviço é
-    # lançado como um custo extra do catálogo (com valor digitado na hora,
-    # ex. "Manutenção"), então essa linha já sai de dentro do loop de custos
-    # extras abaixo, igual às demais. Materiais seguem o mesmo padrão
-    # agregado da instalação.
+    # Manutenção não tem valor base fixo/por módulo como vistoria/instalação:
+    # o líder escolhe um "serviço" do catálogo na criação da OS (os.servico),
+    # e o valor dele vira a linha "servico" automaticamente ao dar baixa. Se
+    # nenhum serviço for escolhido, não há linha automática - o valor pode
+    # ainda assim ser lançado como custo extra na hora (ver loop abaixo).
+    # Em qualquer um dos dois casos, o administrativo pode sobrescrever só
+    # nesta OS com valor_servico_manual. Materiais seguem o padrão agregado
+    # da instalação.
     manutencoes = OrdemServico.objects.filter(
         criado_por=lider, tipo=TipoOS.MANUTENCAO, status=StatusOS.CONCLUIDA
-    ).select_related("cliente")
+    ).select_related("cliente", "servico")
     for os in manutencoes:
         cliente = os.cliente
         periodo = periodo_para_os(os)
+
+        if os.valor_servico_manual is not None:
+            grupos[periodo].append(
+                {
+                    "cliente": cliente,
+                    "os": os,
+                    "descricao": os.servico.nome if os.servico_id else "Manutenção",
+                    "valor": os.valor_servico_manual,
+                    "tipo_linha": "servico",
+                    "uso_id": None,
+                }
+            )
+        elif os.servico_id:
+            grupos[periodo].append(
+                {
+                    "cliente": cliente,
+                    "os": os,
+                    "descricao": os.servico.nome,
+                    "valor": os.servico.valor,
+                    "tipo_linha": "servico",
+                    "uso_id": None,
+                }
+            )
 
         materiais = OsMaterialUso.objects.filter(os=os).select_related("material")
         valor_materiais = sum((u.subtotal() for u in materiais), start=0)

@@ -1,7 +1,9 @@
 from django import forms
 
+from apps.checklists.models import TipoOS
 from apps.clientes.models import Cliente
 from apps.contas.models import Usuario
+from apps.financas.models import ServicoCatalogo
 
 from .models import OrdemServico
 
@@ -9,7 +11,10 @@ from .models import OrdemServico
 class OsCriarForm(forms.ModelForm):
     class Meta:
         model = OrdemServico
-        fields = ["cliente", "tipo", "tecnico", "data_agendada", "observacoes", "documento_pdf_1", "documento_pdf_2"]
+        fields = [
+            "cliente", "tipo", "servico", "tecnico", "data_agendada", "observacoes",
+            "documento_pdf_1", "documento_pdf_2",
+        ]
         labels = {
             "documento_pdf_1": "Projeto (PDF)",
             "documento_pdf_2": "Vistoria (PDF)",
@@ -22,6 +27,10 @@ class OsCriarForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["tecnico"].queryset = Usuario.objects.filter(role=Usuario.Papel.TECNICO)
+        self.fields["servico"].queryset = ServicoCatalogo.objects.filter(
+            ativo=True, aplicavel_em=TipoOS.MANUTENCAO
+        )
+        self.fields["servico"].required = False
         if user is not None:
             self.fields["cliente"].queryset = Cliente.objects.filter(criado_por=user)
 

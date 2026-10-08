@@ -112,3 +112,28 @@ class CustoExtraCatalogo(models.Model):
         if tipo_os in (TipoOS.INSTALACAO, TipoOS.VISTORIA):
             return Q(aplicavel_em=AplicavelEm.AMBOS) | Q(aplicavel_em=tipo_os)
         return Q(aplicavel_em=tipo_os)
+
+
+class ServicoCatalogo(models.Model):
+    """Serviço escolhido na criação da OS (hoje só pra manutenção, que não
+    tem valor automático fixo/por módulo como vistoria/instalação) - define
+    o valor cobrado automaticamente ao dar baixa. O administrativo ainda
+    pode sobrescrever esse valor só numa OS específica (ver
+    OrdemServico.valor_servico_manual)."""
+
+    nome = models.CharField("Serviço", max_length=150)
+    valor = models.DecimalField("Valor", max_digits=10, decimal_places=2, default=0)
+    aplicavel_em = models.CharField(
+        "Tipo de OS", max_length=12, choices=TipoOS.choices, default=TipoOS.MANUTENCAO,
+        help_text="Em qual tipo de OS esse serviço pode ser escolhido na criação.",
+    )
+    ativo = models.BooleanField("Ativo", default=True)
+    criado_em = models.DateTimeField("Criado em", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Serviço do catálogo"
+        verbose_name_plural = "Catálogo de serviços"
+        ordering = ["nome"]
+
+    def __str__(self):
+        return self.nome

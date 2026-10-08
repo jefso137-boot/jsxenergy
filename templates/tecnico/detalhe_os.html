@@ -9,7 +9,7 @@
 {% if os.cliente.endereco %}
 <p class="text-sm text-body-gray">{{ os.cliente.endereco }}{% if os.cliente.cidade %}, {{ os.cliente.cidade }}{% endif %}</p>
 {% endif %}
-<p class="text-sm text-body-gray mb-1">{{ os.get_tipo_display }} — agendada para {{ os.data_agendada|date:"d/m/Y" }}</p>
+<p class="text-sm text-body-gray mb-1">{{ os.get_tipo_display }}{% if os.servico %} — {{ os.servico.nome }}{% endif %} — agendada para {{ os.data_agendada|date:"d/m/Y" }}</p>
 {% if os.observacoes %}
 <p class="text-sm text-body-gray mb-1">Observações: {{ os.observacoes }}</p>
 {% endif %}

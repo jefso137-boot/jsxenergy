@@ -21,6 +21,16 @@ class StatusPill(models.TextChoices):
 class OrdemServico(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="ordens_servico")
     tipo = models.CharField("Tipo de OS", max_length=12, choices=TipoOS.choices)
+    servico = models.ForeignKey(
+        "financas.ServicoCatalogo",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="ordens",
+        verbose_name="Serviço",
+        help_text="Serviço escolhido (hoje, só manutenção) - define o valor automático cobrado ao "
+        "concluir a OS. Deixe em branco se o valor vai ser lançado como custo extra na hora.",
+    )
     tecnico = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -79,6 +89,13 @@ class OrdemServico(models.Model):
         ),
     )
     pdf_file = models.FileField("PDF gerado", upload_to="relatorios_os/", null=True, blank=True)
+
+    valor_servico_manual = models.DecimalField(
+        "Valor manual do serviço (admin)", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Preenchido só pelo administrativo, nunca pelo líder/técnico. Substitui, só nesta "
+        "OS específica, o valor automático do serviço (vistoria fixa, instalação por módulo, ou "
+        "serviço de manutenção escolhido). Deixe em branco no uso normal.",
+    )
 
     criado_em = models.DateTimeField("Criado em", auto_now_add=True)
 

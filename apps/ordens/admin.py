@@ -68,7 +68,7 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     date_hierarchy = "data_agendada"
     readonly_fields = ("criado_por", "data_conclusao", "pdf_file")
     fieldsets = (
-        (None, {"fields": ("cliente", "tipo", "tecnico", "status", "data_agendada", "observacoes")}),
+        (None, {"fields": ("cliente", "tipo", "servico", "tecnico", "status", "data_agendada", "observacoes")}),
         ("Anexos (PDF)", {"fields": ("documento_pdf_1", "documento_pdf_2")}),
         (
             "Conteúdo do relatório (PDF)",
@@ -84,6 +84,15 @@ class OrdemServicoAdmin(admin.ModelAdmin):
         ),
         ("Conclusão", {"fields": ("criado_por", "data_conclusao", "pdf_file")}),
         ("Medição", {"fields": ("data_referencia_medicao",)}),
+        (
+            "Precificação (admin)",
+            {
+                "fields": ("valor_servico_manual",),
+                "description": "Só o administrativo edita isto. Preencher substitui, só nesta OS, "
+                "o valor automático do serviço (vistoria fixa, instalação por módulo, ou o serviço "
+                "de manutenção escolhido).",
+            },
+        ),
     )
 
     def get_inlines(self, request, obj):

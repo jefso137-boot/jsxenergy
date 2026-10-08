@@ -5,7 +5,7 @@
 <a href="{% url 'lider_minhas_os' %}" class="text-sm text-ink-muted">&larr; Minhas OS</a>
 
 <h1 class="text-xl font-semibold text-ink mt-2">{{ os.cliente.nome }}</h1>
-<p class="text-sm text-body-gray mb-1">{{ os.get_tipo_display }} — técnico: {{ os.tecnico.get_full_name|default:os.tecnico.username }}</p>
+<p class="text-sm text-body-gray mb-1">{{ os.get_tipo_display }}{% if os.servico %} — {{ os.servico.nome }}{% endif %} — técnico: {{ os.tecnico.get_full_name|default:os.tecnico.username }}</p>
 {% if os.cliente.endereco %}
 <p class="text-sm text-body-gray">{{ os.cliente.endereco }}{% if os.cliente.cidade %}, {{ os.cliente.cidade }}{% endif %}</p>
 {% endif %}
