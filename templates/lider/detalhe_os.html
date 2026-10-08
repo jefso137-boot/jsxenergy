@@ -103,7 +103,7 @@
     {% endif %}
 </section>
 
-{% if os.tipo == "INSTALACAO" and os.cliente.precisa_material_ca %}
+{% if os.tipo == "MANUTENCAO" or os.tipo == "INSTALACAO" and os.cliente.precisa_material_ca %}
 <section class="jsx-card p-4 mb-4">
     <h2 class="font-semibold text-ink mb-3">Materiais utilizados</h2>
     {% if materiais_usados %}

@@ -71,6 +71,7 @@ def cliente_detalhe(request, pk):
         "cliente": cliente,
         "vistorias": ordens.filter(tipo=TipoOS.VISTORIA),
         "instalacoes": ordens.filter(tipo=TipoOS.INSTALACAO),
+        "manutencoes": ordens.filter(tipo=TipoOS.MANUTENCAO),
         "valor_instalacao": cliente.valor_estimado_instalacao(),
         "valor_materiais": cliente.valor_materiais_usados(),
         "custos_extras_agrupados": custos_extras_agrupados,
@@ -174,6 +175,45 @@ def montar_grupos_do_lider(lider):
 
         # Idem: cada custo extra da instalação vira sua própria linha, com
         # nome e valor específicos (ex.: "Cabo multiplexado").
+        custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
+        for uso in custos:
+            grupos[periodo].append(
+                {
+                    "cliente": cliente,
+                    "os": os,
+                    "descricao": uso.custo.nome,
+                    "valor": uso.subtotal(),
+                    "tipo_linha": "custo_extra",
+                    "uso_id": uso.pk,
+                }
+            )
+
+    # Manutenção não tem valor base automático - o próprio serviço é
+    # lançado como um custo extra do catálogo (com valor digitado na hora,
+    # ex. "Manutenção"), então essa linha já sai de dentro do loop de custos
+    # extras abaixo, igual às demais. Materiais seguem o mesmo padrão
+    # agregado da instalação.
+    manutencoes = OrdemServico.objects.filter(
+        criado_por=lider, tipo=TipoOS.MANUTENCAO, status=StatusOS.CONCLUIDA
+    ).select_related("cliente")
+    for os in manutencoes:
+        cliente = os.cliente
+        periodo = periodo_para_os(os)
+
+        materiais = OsMaterialUso.objects.filter(os=os).select_related("material")
+        valor_materiais = sum((u.subtotal() for u in materiais), start=0)
+        if valor_materiais:
+            grupos[periodo].append(
+                {
+                    "cliente": cliente,
+                    "os": os,
+                    "descricao": "Material",
+                    "valor": valor_materiais,
+                    "tipo_linha": "material",
+                    "uso_id": None,
+                }
+            )
+
         custos = OsCustoExtraUso.objects.filter(os=os).select_related("custo")
         for uso in custos:
             grupos[periodo].append(

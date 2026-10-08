@@ -3,7 +3,6 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -163,7 +162,7 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "add_materiais":
-            if os.tipo != "INSTALACAO" or not os.cliente.precisa_material_ca:
+            if os.tipo == "VISTORIA" or (os.tipo == "INSTALACAO" and not os.cliente.precisa_material_ca):
                 raise PermissionDenied("Este cliente não precisa de material C.A.")
             catalogo = {str(m.id): m for m in MaterialCatalogo.objects.filter(ativo=True)}
             registrados = 0
@@ -187,7 +186,7 @@ def detalhe_os(request, pk):
             return redirect("tecnico_detalhe_os", pk=os.pk)
 
         if acao == "excluir_material":
-            if os.tipo != "INSTALACAO" or not os.cliente.precisa_material_ca:
+            if os.tipo == "VISTORIA" or (os.tipo == "INSTALACAO" and not os.cliente.precisa_material_ca):
                 raise PermissionDenied("Este cliente não precisa de material C.A.")
             OsMaterialUso.objects.filter(os=os, pk=request.POST.get("uso_id")).delete()
             messages.success(request, "Material removido.")
@@ -197,7 +196,7 @@ def detalhe_os(request, pk):
             catalogo = {
                 str(c.id): c
                 for c in CustoExtraCatalogo.objects.filter(ativo=True).filter(
-                    Q(aplicavel_em="AMBOS") | Q(aplicavel_em=os.tipo)
+                    CustoExtraCatalogo.filtro_aplicavel_em(os.tipo)
                 )
             }
             salvos = 0
@@ -359,7 +358,7 @@ def detalhe_os(request, pk):
         ),
         "custos_extras_usados": custos_extras_usados,
         "custos_extras_disponiveis": CustoExtraCatalogo.objects.filter(ativo=True)
-        .filter(Q(aplicavel_em="AMBOS") | Q(aplicavel_em=os.tipo))
+        .filter(CustoExtraCatalogo.filtro_aplicavel_em(os.tipo))
         .exclude(id__in=custos_extras_usados.values_list("custo_id", flat=True)),
     }
     return render(request, "tecnico/detalhe_os.html", context)

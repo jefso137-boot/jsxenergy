@@ -90,7 +90,7 @@ class OrdemServicoAdmin(admin.ModelAdmin):
         if obj is None:
             return []
         inlines = [OsChecklistRespostaInline, OsCustoExtraUsoInline]
-        if obj.tipo == "INSTALACAO" and obj.cliente.precisa_material_ca:
+        if obj.tipo == "MANUTENCAO" or (obj.tipo == "INSTALACAO" and obj.cliente.precisa_material_ca):
             inlines.append(OsMaterialUsoInline)
         return inlines
 

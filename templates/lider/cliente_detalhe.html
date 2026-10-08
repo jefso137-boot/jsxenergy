@@ -94,6 +94,25 @@
     {% endif %}
 </section>
 
+<section class="jsx-card p-4 mb-4">
+    <h2 class="font-semibold text-ink mb-3">Manutenções</h2>
+    {% if manutencoes %}
+    <div class="space-y-2">
+        {% for os in manutencoes %}
+        <a href="{% url 'lider_detalhe_os' os.pk %}" class="block border border-hairline rounded-xl p-3 active:bg-gray-50">
+            <div class="flex justify-between text-sm">
+                <span>{{ os.tecnico.get_full_name|default:os.tecnico.username }}</span>
+                <span class="jsx-pill text-xs py-0.5 {% if os.status == 'CONCLUIDA' %}bg-green-50 text-green-700{% elif os.status == 'EM_ANDAMENTO' %}bg-orange/10 text-orange{% else %}bg-gray-100 text-gray-600{% endif %}">{{ os.get_status_display }}</span>
+            </div>
+            <p class="text-xs text-gray-400">{{ os.data_agendada|date:"d/m/Y" }}</p>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-ink-muted">Nenhuma manutenção criada.</p>
+    {% endif %}
+</section>
+
 {% if fotos_cliente %}
 <section class="jsx-card p-4 mb-4">
     <h2 class="font-semibold text-ink mb-3">Fotos</h2>

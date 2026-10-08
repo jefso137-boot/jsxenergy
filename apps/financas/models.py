@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.checklists.models import TipoCampo
+from apps.checklists.models import TipoCampo, TipoOS
 
 
 class ConfiguracaoPreco(models.Model):
@@ -51,6 +51,7 @@ class AplicavelEm(models.TextChoices):
     INSTALACAO = "INSTALACAO", "Somente instalação"
     VISTORIA = "VISTORIA", "Somente vistoria"
     AMBOS = "AMBOS", "Instalação e vistoria"
+    MANUTENCAO = "MANUTENCAO", "Somente manutenção"
 
 
 class CustoExtraCatalogo(models.Model):
@@ -97,4 +98,17 @@ class CustoExtraCatalogo(models.Model):
         return self.nome
 
     def aplica_a(self, tipo_os):
-        return self.aplicavel_em == AplicavelEm.AMBOS or self.aplicavel_em == tipo_os
+        if self.aplicavel_em == AplicavelEm.AMBOS:
+            # "Instalação e vistoria" nunca inclui manutenção - é um terceiro
+            # tipo de OS com catálogo próprio (aplicavel_em=MANUTENCAO).
+            return tipo_os in (TipoOS.INSTALACAO, TipoOS.VISTORIA)
+        return self.aplicavel_em == tipo_os
+
+    @classmethod
+    def filtro_aplicavel_em(cls, tipo_os):
+        """Mesma regra de aplica_a(), em forma de Q pra filtrar no banco."""
+        from django.db.models import Q
+
+        if tipo_os in (TipoOS.INSTALACAO, TipoOS.VISTORIA):
+            return Q(aplicavel_em=AplicavelEm.AMBOS) | Q(aplicavel_em=tipo_os)
+        return Q(aplicavel_em=tipo_os)
